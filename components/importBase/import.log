@@ -22826,3 +22826,37 @@
 [2026-06-09 19:57:23] [EMERGENCY] Filas vacías omitidas: 0
 [2026-06-09 19:57:23] [EMERGENCY] Total de errores: 0
 [2026-06-09 19:57:23] [EMERGENCY] === FIN DE IMPORTACIÓN ===
+[2026-07-23 00:22:41] [EMERGENCY] === INICIO DE IMPORTACIÓN ===
+[2026-07-23 00:22:41] [EMERGENCY] Archivo procesado: plantilla_base_estudiantes_v2.xlsx
+[2026-07-23 00:22:42] [EMERGENCY] Error: [8192] trim(): Passing null to parameter #1 ($string) of type string is deprecated in /var/www/html/ESCOLINK_CENDI/components/importBase/process_import.php on line 218
+[2026-07-23 00:22:42] [EMERGENCY] Error: [8192] trim(): Passing null to parameter #1 ($string) of type string is deprecated in /var/www/html/ESCOLINK_CENDI/components/importBase/process_import.php on line 225
+[2026-07-23 00:22:42] [EMERGENCY] Error: [8192] trim(): Passing null to parameter #1 ($string) of type string is deprecated in /var/www/html/ESCOLINK_CENDI/components/importBase/process_import.php on line 231
+[2026-07-23 00:22:42] [EMERGENCY] SUCCESS - Fila 2: Estudiante 123456789 insertado correctamente
+[2026-07-23 00:22:42] [EMERGENCY] Error: [8192] trim(): Passing null to parameter #1 ($string) of type string is deprecated in /var/www/html/ESCOLINK_CENDI/components/importBase/process_import.php on line 139
+[2026-07-23 00:22:42] [EMERGENCY] Error: [8192] trim(): Passing null to parameter #1 ($string) of type string is deprecated in /var/www/html/ESCOLINK_CENDI/components/importBase/process_import.php on line 139
+[2026-07-23 00:22:42] [EMERGENCY] Error: [8192] trim(): Passing null to parameter #1 ($string) of type string is deprecated in /var/www/html/ESCOLINK_CENDI/components/importBase/process_import.php on line 139
+[2026-07-23 00:22:42] [EMERGENCY] Error: [8192] trim(): Passing null to parameter #1 ($string) of type string is deprecated in /var/www/html/ESCOLINK_CENDI/components/importBase/process_import.php on line 139
+[2026-07-23 00:22:42] [EMERGENCY] Error: [8192] trim(): Passing null to parameter #1 ($string) of type string is deprecated in /var/www/html/ESCOLINK_CENDI/components/importBase/process_import.php on line 139
+[2026-07-23 00:22:42] [EMERGENCY] Error: [8192] trim(): Passing null to parameter #1 ($string) of type string is deprecated in /var/www/html/ESCOLINK_CENDI/components/importBase/process_import.php on line 139
+[2026-07-23 00:22:42] [EMERGENCY] Error: [8192] trim(): Passing null to parameter #1 ($string) of type string is deprecated in /var/www/html/ESCOLINK_CENDI/components/importBase/process_import.php on line 139
+[2026-07-23 00:22:42] [EMERGENCY] Error: [8192] trim(): Passing null to parameter #1 ($string) of type string is deprecated in /var/www/html/ESCOLINK_CENDI/components/importBase/process_import.php on line 139
+[2026-07-23 00:22:42] [EMERGENCY] Error: [8192] trim(): Passing null to parameter #1 ($string) of type string is deprecated in /var/www/html/ESCOLINK_CENDI/components/importBase/process_import.php on line 139
+[2026-07-23 00:22:42] [EMERGENCY] Error: [8192] trim(): Passing null to parameter #1 ($string) of type string is deprecated in /var/www/html/ESCOLINK_CENDI/components/importBase/process_import.php on line 139
+[2026-07-23 00:22:42] [EMERGENCY] Error: [8192] trim(): Passing null to parameter #1 ($string) of type string is deprecated in /var/www/html/ESCOLINK_CENDI/components/importBase/process_import.php on line 139
+[2026-07-23 00:22:42] [EMERGENCY] Error: [8192] trim(): Passing null to parameter #1 ($string) of type string is deprecated in /var/www/html/ESCOLINK_CENDI/components/importBase/process_import.php on line 139
+[2026-07-23 00:22:42] [EMERGENCY] Error: [8192] trim(): Passing null to parameter #1 ($string) of type string is deprecated in /var/www/html/ESCOLINK_CENDI/components/importBase/process_import.php on line 139
+[2026-07-23 00:22:42] [EMERGENCY] Error: [8192] trim(): Passing null to parameter #1 ($string) of type string is deprecated in /var/www/html/ESCOLINK_CENDI/components/importBase/process_import.php on line 139
+[2026-07-23 00:22:42] [EMERGENCY] Error: [8192] trim(): Passing null to parameter #1 ($string) of type string is deprecated in /var/www/html/ESCOLINK_CENDI/components/importBase/process_import.php on line 139
+[2026-07-23 00:22:42] [EMERGENCY] Error: [8192] trim(): Passing null to parameter #1 ($string) of type string is deprecated in /var/www/html/ESCOLINK_CENDI/components/importBase/process_import.php on line 139
+[2026-07-23 00:22:42] [EMERGENCY] Error: [8192] trim(): Passing null to parameter #1 ($string) of type string is deprecated in /var/www/html/ESCOLINK_CENDI/components/importBase/process_import.php on line 139
+[2026-07-23 00:22:42] [EMERGENCY] Error: [8192] trim(): Passing null to parameter #1 ($string) of type string is deprecated in /var/www/html/ESCOLINK_CENDI/components/importBase/process_import.php on line 139
+[2026-07-23 00:22:42] [EMERGENCY] Error: [8192] trim(): Passing null to parameter #1 ($string) of type string is deprecated in /var/www/html/ESCOLINK_CENDI/components/importBase/process_import.php on line 139
+[2026-07-23 00:22:42] [EMERGENCY] Error: [8192] trim(): Passing null to parameter #1 ($string) of type string is deprecated in /var/www/html/ESCOLINK_CENDI/components/importBase/process_import.php on line 139
+[2026-07-23 00:22:42] [EMERGENCY] Error: [8192] trim(): Passing null to parameter #1 ($string) of type string is deprecated in /var/www/html/ESCOLINK_CENDI/components/importBase/process_import.php on line 139
+[2026-07-23 00:22:42] [EMERGENCY] Error: [8192] trim(): Passing null to parameter #1 ($string) of type string is deprecated in /var/www/html/ESCOLINK_CENDI/components/importBase/process_import.php on line 139
+[2026-07-23 00:22:42] [EMERGENCY] === RESUMEN DE IMPORTACIÓN ===
+[2026-07-23 00:22:42] [EMERGENCY] Nuevos registros: 1
+[2026-07-23 00:22:42] [EMERGENCY] Registros actualizados: 0
+[2026-07-23 00:22:42] [EMERGENCY] Filas vacías omitidas: 1
+[2026-07-23 00:22:42] [EMERGENCY] Total de errores: 0
+[2026-07-23 00:22:42] [EMERGENCY] === FIN DE IMPORTACIÓN ===

@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/../../controller/conexion.php';
+require_once __DIR__ . '/send_absence_email.php';
 
 // Iniciar sesión para obtener el usuario actual
 session_start();
@@ -89,7 +90,8 @@ if ($intensity <= 0) {
 try {
     $conn->begin_transaction();
 
-    // 1. Actualizar registros de asistencia
+    $absentStudents = [];
+
     foreach ($data['attendance'] as $recordId => $status) {
         // Validar el estado
         $validStates = ['presente', 'tarde', 'ausente', 'festivo'];
@@ -161,6 +163,10 @@ try {
         }
         
         $stmt->close();
+
+        if ($status === 'ausente' && !empty($student_id)) {
+            $absentStudents[] = $student_id;
+        }
         
         // 2. Actualizar la intensidad horaria solo si el estudiante está presente o tarde
         if (($status === 'presente' || $status === 'tarde') && !empty($student_id)) {
@@ -213,7 +219,15 @@ try {
     }
 
     $conn->commit();
-    echo json_encode(['success' => true]);
+
+    $emailsSent = 0;
+    foreach ($absentStudents as $student_id) {
+        if (sendAbsenceEmail($conn, $student_id, $data['class_date'], '', $data['course_type'])) {
+            $emailsSent++;
+        }
+    }
+
+    echo json_encode(['success' => true, 'emails_sent' => $emailsSent]);
 
 } catch (Exception $e) {
     $conn->rollback();

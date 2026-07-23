@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/../../controller/conexion.php';
+require_once __DIR__ . '/send_absence_email.php';
 
 header('Content-Type: application/json');
 
@@ -51,5 +52,18 @@ if ($stmt->num_rows > 0) {
 }
 
 $stmt->close();
+
+if ($attendance_status === 'ausente') {
+    $course_type = '';
+    $stmt_type = $conn->prepare("SELECT course_type FROM courses WHERE code = ?");
+    if ($stmt_type) {
+        $stmt_type->bind_param("i", $course_id);
+        $stmt_type->execute();
+        $stmt_type->bind_result($course_type);
+        $stmt_type->fetch();
+        $stmt_type->close();
+    }
+    sendAbsenceEmail($conn, $student_id, $class_date, '', $course_type);
+}
 
 echo json_encode(['success' => true]);

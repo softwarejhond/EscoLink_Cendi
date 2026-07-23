@@ -212,7 +212,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['excel_file'])) {
                     continue; // Saltar filas vacías sin contarlas como error
                 }
 
-                $row = array_pad($row, 17, ''); // Ahora son 17 columnas
+                $row = array_pad($row, 22, '');
 
                 $document_type = normalizeDocumentType($row[0]);
                 $simat = trim($row[1]);
@@ -232,8 +232,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['excel_file'])) {
                 $city = normalizeText($row[15]);
                 $sede = trim($row[16]);
                 $status = normalizeStatus($row[17]);
-                writeErrorToLog("DEBUG - Fila $rowNumber: row[17]='" . $row[17] . "', status='$status'");
-                $updated_by = null; // Definir variable para updated_by
+                $cedula_acudiente = trim($row[18]);
+                $nombre_acudiente = trim($row[19]);
+                $email_acudiente = trim($row[20]);
+                $telefono_acudiente = trim($row[21]);
+                $updated_by = null;
 
                 // Validar campos obligatorios
                 if (empty($document_number) || empty($name) || empty($registration_date) || empty($grade_level)) {
@@ -256,8 +259,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['excel_file'])) {
 
                 if ($count > 0) {
                     // Actualizar
-                    $stmt = $conn->prepare("UPDATE el_students SET student_code=?, document_type=?, name=?, grade_level=?, gender=?, email=?, cell_phone=?, address=?, city=?, status=?, registration_date=?, sede=?, simat=?, cell_phone2=?, barrio=?, comuna=?, updated_by=? WHERE document_number=?");
-                    $stmt->bind_param("sssssssssssssssssi", $student_code, $document_type, $name, $grade_level, $gender, $email, $cell_phone, $address, $city, $status, $registration_date, $sede, $simat, $cell_phone2, $barrio, $comuna, $updated_by, $document_number);
+                    $stmt = $conn->prepare("UPDATE el_students SET student_code=?, document_type=?, name=?, grade_level=?, gender=?, email=?, cell_phone=?, address=?, city=?, status=?, registration_date=?, sede=?, simat=?, cell_phone2=?, barrio=?, comuna=?, updated_by=?, cedula_acudiente=?, nombre_acudiente=?, email_acudiente=?, telefono_acudiente=? WHERE document_number=?");
+                    $stmt->bind_param("ssssssssssssssssssssssi", $student_code, $document_type, $name, $grade_level, $gender, $email, $cell_phone, $address, $city, $status, $registration_date, $sede, $simat, $cell_phone2, $barrio, $comuna, $updated_by, $cedula_acudiente, $nombre_acudiente, $email_acudiente, $telefono_acudiente, $document_number);
                     if ($stmt->execute()) {
                         $updates++;
                         writeErrorToLog("SUCCESS - Fila $rowNumber: Estudiante $document_number actualizado correctamente");
@@ -268,8 +271,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['excel_file'])) {
                     }
                 } else {
                     // Insertar
-                    $stmt = $conn->prepare("INSERT INTO el_students (student_code, document_type, document_number, name, grade_level, gender, email, cell_phone, address, city, status, registration_date, sede, simat, cell_phone2, barrio, comuna, updated_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-                    $stmt->bind_param("ssisssssssssssssss", $student_code, $document_type, $document_number, $name, $grade_level, $gender, $email, $cell_phone, $address, $city, $status, $registration_date, $sede, $simat, $cell_phone2, $barrio, $comuna, $updated_by);
+                    $stmt = $conn->prepare("INSERT INTO el_students (student_code, document_type, document_number, name, grade_level, gender, email, cell_phone, address, city, status, registration_date, sede, simat, cell_phone2, barrio, comuna, updated_by, cedula_acudiente, nombre_acudiente, email_acudiente, telefono_acudiente) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                    $stmt->bind_param("ssisssssssssssssssssss", $student_code, $document_type, $document_number, $name, $grade_level, $gender, $email, $cell_phone, $address, $city, $status, $registration_date, $sede, $simat, $cell_phone2, $barrio, $comuna, $updated_by, $cedula_acudiente, $nombre_acudiente, $email_acudiente, $telefono_acudiente);
                     if ($stmt->execute()) {
                         $inserts++;
                         writeErrorToLog("SUCCESS - Fila $rowNumber: Estudiante $document_number insertado correctamente");

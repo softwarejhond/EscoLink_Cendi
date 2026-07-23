@@ -1,8 +1,8 @@
 <?php
 //datos local
-$server = "localhost";
+$server = "db";
 $username = "root";
-$password = "";
+$password = "root";
 $bd = "cendi_escolink";
 
 //creamos una conexión

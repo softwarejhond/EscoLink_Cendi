@@ -110,7 +110,11 @@ CREATE TABLE `el_students` (
   `simat` varchar(255) DEFAULT NULL,
   `cell_phone2` varchar(20) DEFAULT NULL,
   `barrio` varchar(255) DEFAULT NULL,
-  `comuna` varchar(255) DEFAULT NULL
+  `comuna` varchar(255) DEFAULT NULL,
+  `cedula_acudiente` varchar(20) DEFAULT NULL,
+  `nombre_acudiente` varchar(100) DEFAULT NULL,
+  `email_acudiente` varchar(100) DEFAULT NULL,
+  `telefono_acudiente` varchar(20) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -277,7 +281,7 @@ CREATE TABLE `smtpconfig` (
 --
 
 INSERT INTO `smtpconfig` (`id`, `username`, `host`, `email`, `password`, `port`, `dependence`, `Subject`) VALUES
-(1, 'noreply@agenciaeaglesoftware.com', 'mail.agenciaeaglesoftware.com', 'noreply@agenciaeaglesoftware.com', 'sPcp]2tI29DWXjBM', 465, 'Plataforma Beneficios METROFEM', 'Confirmación de entrega - Beneficios');
+(3, 'noreply@agenciaeaglesoftware.com', 'mail.agenciaeaglesoftware.com', 'noreply@agenciaeaglesoftware.com', 'sPcp]2tI29DWXjBM', 465, 'Plataforma Beneficios METROFEM', 'Confirmación de entrega - Beneficios');
 
 -- --------------------------------------------------------
 

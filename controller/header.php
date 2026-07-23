@@ -60,7 +60,7 @@ $logo = $company['logo'] ?? 'gf_header.png'; // Fallback si no hay logo
             </button>
             <script>
                 document.getElementById('btnDescargarPlantilla').addEventListener('click', function() {
-                    window.location.href = 'uploads/plantilla_base_estudiantes.xlsx';
+                    window.location.href = 'uploads/plantilla_base_estudiantes_v2.xlsx';
                 });
 
                 // NUEVO EVENT LISTENER

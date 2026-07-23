@@ -118,7 +118,7 @@ $extraRol = $infoUsuario['extra_rol'] ?? ''; // Obtener el extra_rol del usuario
 </style>
 <div class="offcanvas offcanvas-bottom text-bg-dark" tabindex="-1" id="offcanvasBottom" aria-labelledby="offcanvasBottomLabel">
     <div class="offcanvas-header">
-        <h5 class="offcanvas-title" id="offcanvasBottomLabel"><i class="bi bi-boxes"></i>   SYGNIA - Gestión de matriculados</h5>
+        <h5 class="offcanvas-title" id="offcanvasBottomLabel"><i class="bi bi-boxes"></i>   ESCOLINK - Opciones</h5>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Close"></button>
     </div>
     <div class="offcanvas-body small">

@@ -1,0 +1,16 @@
+[2026-07-23 00:49:18] ERROR - No se encontró configuración SMTP con id=1
+[2026-07-23 00:51:08] ERROR SMTP - juandidoc11@gmail.com: SMTP Error: The following recipients failed: juandidoc11@gmail.com: You_are_not_allowed_to_send_through_this_server_from_the_specified_email_address_[noreply@cendiacademico.edu.co]._Protection_provided_by_MagicSpam_2.2.7-1_https://magicspam.com
+
+[2026-07-23 00:51:25] ERROR SMTP - juandidoc11@gmail.com: SMTP Error: The following recipients failed: juandidoc11@gmail.com: You_are_not_allowed_to_send_through_this_server_from_the_specified_email_address_[noreply@cendiacademico.edu.co]._Protection_provided_by_MagicSpam_2.2.7-1_https://magicspam.com
+
+[2026-07-23 00:58:48] ERROR SMTP - juandidoc11@gmail.com: SMTP Error: The following recipients failed: juandidoc11@gmail.com: You_are_not_allowed_to_send_through_this_server_from_the_specified_email_address_[noreply@cendiacademico.edu.co]._Protection_provided_by_MagicSpam_2.2.7-1_https://magicspam.com
+
+[2026-07-23 01:03:45] ERROR SMTP - juandidoc11@gmail.com: SMTP Error: The following recipients failed: juandidoc11@gmail.com: You_are_not_allowed_to_send_through_this_server_from_the_specified_email_address_[noreply@cendiacademico.edu.co]._Protection_provided_by_MagicSpam_2.2.7-1_https://magicspam.com
+
+[2026-07-23 01:06:25] ERROR SMTP - juandidoc11@gmail.com: SMTP Error: The following recipients failed: juandidoc11@gmail.com: You_are_not_allowed_to_send_through_this_server_from_the_specified_email_address_[noreply@cendiacademico.edu.co]._Protection_provided_by_MagicSpam_2.2.7-1_https://magicspam.com
+
+[2026-07-23 18:45:54] ERROR SMTP - juandidoc11@gmail.com: SMTP Error: The following recipients failed: juandidoc11@gmail.com: You_are_not_allowed_to_send_through_this_server_from_the_specified_email_address_[noreply@cendiacademico.edu.co]._Protection_provided_by_MagicSpam_2.2.7-1_https://magicspam.com
+
+[2026-07-23 18:48:43] ERROR SMTP - juandidoc11@gmail.com: SMTP Error: Could not authenticate.
+[2026-07-23 19:02:23] ERROR SMTP - juandidoc11@gmail.com: SMTP Error: The following recipients failed: juandidoc11@gmail.com: You_are_not_allowed_to_send_through_this_server_from_the_specified_email_address_[noreply@cendiacademico.edu.co]._Protection_provided_by_MagicSpam_2.2.7-1_https://magicspam.com
+

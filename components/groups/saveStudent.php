@@ -34,6 +34,10 @@ $sede          = trim($_POST['sede'] ?? '');
 $status        = $_POST['status'] ?? 'ACTIVO';
 $registration_date = trim($_POST['registration_date'] ?? '') ?: null;
 $updated_by    = $_SESSION['username'] ?? 'system';
+$cedula_acudiente  = trim($_POST['cedula_acudiente'] ?? '');
+$nombre_acudiente  = trim($_POST['nombre_acudiente'] ?? '');
+$email_acudiente   = trim($_POST['email_acudiente'] ?? '');
+$telefono_acudiente = trim($_POST['telefono_acudiente'] ?? '');
 
 // Validación de campos obligatorios
 if (!$document_number || !$name || !$grade_level || !$document_type || !$gender || !$status) {
@@ -65,16 +69,17 @@ if ($id) {
          SET document_type=?, simat=?, document_number=?, student_code=?, name=?,
              grade_level=?, gender=?, email=?, cell_phone=?, cell_phone2=?,
              address=?, barrio=?, comuna=?, city=?, sede=?, status=?,
-             registration_date=?, updated_by=?
+             registration_date=?, updated_by=?, cedula_acudiente=?, nombre_acudiente=?,
+             email_acudiente=?, telefono_acudiente=?
          WHERE id=?"
     );
-    // s s s s s  s s s s s  s s s s s s  s s  i  = 19 params
     $stmt->bind_param(
-        'ssssssssssssssssssi',
+        'ssssssssssssssssssssssi',
         $document_type, $simat, $document_number, $student_code, $name,
         $grade_level, $gender, $email, $cell_phone, $cell_phone2,
         $address, $barrio, $comuna, $city, $sede, $status,
-        $registration_date, $updated_by, $id
+        $registration_date, $updated_by, $cedula_acudiente, $nombre_acudiente,
+        $email_acudiente, $telefono_acudiente, $id
     );
 } else {
     // Insertar nuevo estudiante
@@ -82,16 +87,17 @@ if ($id) {
         "INSERT INTO el_students
             (document_type, simat, document_number, student_code, name,
              grade_level, gender, email, cell_phone, cell_phone2,
-             address, barrio, comuna, city, sede, status, registration_date, updated_by)
-         VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
+             address, barrio, comuna, city, sede, status, registration_date, updated_by,
+             cedula_acudiente, nombre_acudiente, email_acudiente, telefono_acudiente)
+         VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
     );
-    // 18 params, all strings (DB will cast document_number to bigint)
     $stmt->bind_param(
-        'ssssssssssssssssss',
+        'ssssssssssssssssssssss',
         $document_type, $simat, $document_number, $student_code, $name,
         $grade_level, $gender, $email, $cell_phone, $cell_phone2,
         $address, $barrio, $comuna, $city, $sede, $status,
-        $registration_date, $updated_by
+        $registration_date, $updated_by, $cedula_acudiente, $nombre_acudiente,
+        $email_acudiente, $telefono_acudiente
     );
 }
 

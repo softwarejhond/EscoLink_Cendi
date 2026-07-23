@@ -191,7 +191,7 @@ require_once __DIR__ . '/../components/addUsers/swalAddUser.php';
                     <?php endif; ?>
 
                     <?php if ($rol === 'Administrador' || $rol === 'Control maestro'): ?>
-                        <div class="col-4">
+                        <!-- <div class="col-4">
                             <div class="checkbox"
                                 data-bs-toggle="popover"
                                 data-bs-trigger="hover focus"
@@ -207,7 +207,7 @@ require_once __DIR__ . '/../components/addUsers/swalAddUser.php';
                                     </label>
                                 </a>
                             </div>
-                        </div>
+                        </div> -->
                     <?php endif; ?>
 
                     <?php if ($rol === 'Control maestro'): ?>

@@ -58,7 +58,7 @@ try {
     }
 
     // Contador 2: Estudiantes Activos
-    $stmt = $conn->prepare("SELECT COUNT(*) FROM el_students WHERE status = 'ACTIVO'");
+    $stmt = $conn->prepare("SELECT COUNT(*) FROM el_students WHERE status = 'NUEVO'");
     if ($stmt && $stmt->execute()) {
         $stmt->bind_result($estudiantesActivos);
         $stmt->fetch();

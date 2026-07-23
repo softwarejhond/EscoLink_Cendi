@@ -7,39 +7,32 @@ session_start();
 
 // Verificar si el usuario ya está autenticado
 if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
-    // Si el usuario ya está logueado, redirigir a main.php
     header("location: main.php");
     exit;
 }
 
 // Establecer tiempo de vida de la sesión en segundos
-$inactividad = 86400; // 24 horas
+$inactividad = 86400;
 
 // Comprobar si $_SESSION["timeout"] está establecida
 if (isset($_SESSION["timeout"])) {
-    // Calcular el tiempo de vida de la sesión (TTL = Time To Live)
     $sessionTTL = time() - $_SESSION["timeout"];
     if ($sessionTTL > $inactividad) {
         session_unset();
         session_destroy();
-        header("location: login.php"); // Redirigir a la página de inicio de sesión
+        header("location: login.php");
         exit;
     }
 }
 
-// El siguiente key se crea cuando se inicia sesión
 $_SESSION["timeout"] = time();
 
-// Incluir el archivo de conexión
 require_once "conexion.php";
 
-// Definir variables y inicializar con valores vacíos
 $username = $password = "";
 $username_err = $password_err = "";
 
-// Procesar datos del formulario cuando se envía
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
-    // Validar que el nombre de usuario no esté vacío
     if (empty(trim($_POST["username"]))) {
         $username_err = "Por favor ingrese su usuario.";
     } else if (!filter_var(trim($_POST["username"]), FILTER_VALIDATE_INT)) {
@@ -48,57 +41,42 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $username = trim($_POST["username"]);
     }
 
-    // Validar que la contraseña no esté vacía
     if (empty(trim($_POST["password"]))) {
         $password_err = "Por favor ingrese su contraseña.";
     } else {
         $password = trim($_POST["password"]);
     }
 
-    // Manejar la funcionalidad de "Recordarme"
     if (isset($_POST['rememberMe'])) {
-        // Guardar cookies por 30 días
         setcookie('username', $username, time() + (30 * 24 * 60 * 60), "/");
         setcookie('password', $password, time() + (30 * 24 * 60 * 60), "/");
     } else {
-        // Eliminar cookies si "Recordarme" no está seleccionado
         setcookie('username', '', time() - 3600, "/");
         setcookie('password', '', time() - 3600, "/");
     }
 
-    // Validar credenciales
     if (empty($username_err) && empty($password_err)) {
-        // Preparar una declaración SQL - INCLUIR VERIFICACIÓN DE ORDEN Y CAMPOS ADICIONALES
         $sql = "SELECT id, username, password, nombre, rol, foto, extra_rol, orden, email, genero, telefono, direccion, edad FROM users WHERE username = ? AND orden = 1";
 
         if ($stmt = mysqli_prepare($conn, $sql)) {
-            // Vincular variables a la declaración preparada como parámetros
-            mysqli_stmt_bind_param($stmt, "s", $param_username); // "s" indica que $username es una cadena
+            mysqli_stmt_bind_param($stmt, "s", $param_username);
             $param_username = $username;
 
-            // Intentar ejecutar la declaración preparada
             if (mysqli_stmt_execute($stmt)) {
-                // Almacenar resultado
                 mysqli_stmt_store_result($stmt);
 
-                // Verificar si el nombre de usuario existe y está habilitado
                 if (mysqli_stmt_num_rows($stmt) === 1) {
-                    // Vincular variables de resultado
                     mysqli_stmt_bind_result($stmt, $id, $username, $hashed_password, $nombre, $rol, $foto, $extra_rol, $orden, $email, $genero, $telefono, $direccion, $edad);
                     if (mysqli_stmt_fetch($stmt)) {
                         if (password_verify($password, $hashed_password)) {
-                            // La contraseña es correcta, iniciar una nueva sesión
+                            $_SESSION['loggedin'] = true;
+                            $_SESSION['nombre'] = htmlspecialchars($nombre);
+                            $_SESSION['rol'] = $rol;
+                            $_SESSION['username'] = htmlspecialchars($username);
+                            $_SESSION['foto'] = 'img/fotoUsuarios/' . htmlspecialchars($foto);
+                            $_SESSION['extra_rol'] = $extra_rol;
+                            $_SESSION['orden'] = $orden;
 
-                            // Almacenar datos del usuario en la sesión
-                            $_SESSION['loggedin'] = true; // Indica que el usuario ha iniciado sesión
-                            $_SESSION['nombre'] = htmlspecialchars($nombre); // Establecer el nombre real del usuario
-                            $_SESSION['rol'] = $rol; // Asignar un rol real basado en tu base de datos
-                            $_SESSION['username'] = htmlspecialchars($username); // Asignar nombre de usuario
-                            $_SESSION['foto'] = 'img/fotoUsuarios/' . htmlspecialchars($foto); // Construir la ruta completa
-                            $_SESSION['extra_rol'] = $extra_rol; // Campo extra_rol
-                            $_SESSION['orden'] = $orden; // Estado del usuario
-
-                            // Verificar si hay campos vacíos
                             $campos_incompletos = false;
                             $campos_faltantes = array();
 
@@ -123,11 +101,9 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                                 $campos_faltantes[] = "Edad";
                             }
 
-                            // Guardar la información de campos incompletos en la sesión
                             $_SESSION['campos_incompletos'] = $campos_incompletos;
                             $_SESSION['campos_faltantes'] = $campos_faltantes;
 
-                            // Redirigir al usuario a la página principal
                             header("location: main.php");
                             exit;
                         } else {
@@ -135,7 +111,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                         }
                     }
                 } else {
-                    // Verificar si el usuario existe pero está deshabilitado
                     $sql_check = "SELECT orden FROM users WHERE username = ?";
                     if ($stmt_check = mysqli_prepare($conn, $sql_check)) {
                         mysqli_stmt_bind_param($stmt_check, "s", $username);
@@ -162,7 +137,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 echo "Algo salió mal, por favor vuelve a intentarlo.";
             }
         }
-        // Cerrar la declaración
         mysqli_stmt_close($stmt);
     }
 }
@@ -183,26 +157,10 @@ while ($empresaLog = mysqli_fetch_array($queryCompany)) {
     <title>Escolink</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
-    <link rel="stylesheet" href="css/login1.css?v=2.0">
-    <link rel="icon" href="img/gift_flow_icono.png" type="image/x-icon">
+    <link rel="stylesheet" href="css/contadores.css">
+    <link rel="stylesheet" href="css/login1.css?v=3.0">
+    <link rel="icon" href="img/logos/logo_escolink.png" type="image/x-icon">
     <style>
-        /* Estilos para el modo claro */
-        body.light-mode {
-            background-color: #ffffff;
-            color: #000000;
-        }
-
-        /* Estilos para el modo oscuro */
-        body.dark-mode {
-            background-color: #121212;
-            color: #ffffff;
-        }
-
-        .login-container {
-            transition: background-color 0.3s, color 0.3s;
-        }
-
-        /* Fuente Sparose igual que el footer */
         @font-face {
             font-family: 'Sparose';
             src: url('css/fonts/fonnts.com-Sparose.ttf') format('truetype');
@@ -211,19 +169,10 @@ while ($empresaLog = mysqli_fetch_array($queryCompany)) {
             font-display: swap;
         }
 
-        .eagle-link-footer {
-            font-family: 'Sparose', sans-serif !important;
-            font-size: 14px;
-            color: #000000 !important;
-            text-decoration: none !important;
-            font-weight: normal;
-        }
-
-        /* ── Splash Screen ── */
         #splash-screen {
             position: fixed;
             inset: 0;
-            background: #ffffff;
+            background: #0c0c1d;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -253,7 +202,7 @@ while ($empresaLog = mysqli_fetch_array($queryCompany)) {
             width: 10px;
             height: 10px;
             border-radius: 50%;
-            background: var(--primary-color, #d4c4a8);
+            background: var(--bs-cyan-dark);
             animation: splashBounce 1.2s ease-in-out infinite;
         }
         .splash-dots span:nth-child(2) { animation-delay: 0.2s; }
@@ -266,35 +215,27 @@ while ($empresaLog = mysqli_fetch_array($queryCompany)) {
 </head>
 
 <body>
+    <div id="vanta-bg"></div>
 
-    <!-- Splash Screen -->
     <div id="splash-screen">
-        <img src="./img/logos/logo_escolink.png" alt="Escolink" class="splash-logo">
+        <img src="./img/logos/logo_escolink_blanco.png" alt="Escolink" class="splash-logo">
         <div class="splash-dots">
             <span></span><span></span><span></span>
         </div>
     </div>
 
-    <div class="login-container">
-        <div class="login-sidebar" style="position: relative;">
-            <div class="login-logo">
-                <img src="./img/logos/logo_escolink.png" alt="Logo Beneficios" class="img-fluid pb-2" style="width: 90%; max-width: 400px;">
+    <div class="login-wrapper">
+        <div class="login-card">
+            <div class="login-logo-wrapper">
+                <img src="./img/logos/logo_escolink_blanco.png" alt="Logo Escolink">
             </div>
 
-            <p class="login-text text-gray-50">Inicia sesión con tus credenciales para acceder al sistema</p>
-
-            <br>
-            <small class="text-black d-block text-center" style="position: absolute; bottom: 20px; left: 0; width: 100%;">
-                Made by <img src="img/eagle_blanco.svg" alt="Eagle Software" style="height: 24px; vertical-align: middle; filter: brightness(0);"> <a href="https://www.agenciaeaglesoftware.com/" class="eagle-link-footer" target="_blank">Eagle Software</a> &copy; <?php echo date("Y"); ?>. <br>Todos los derechos reservados a <?php echo $empresa ?>.
-            </small>
-        </div>
-        <div class="login-form">
             <h2 class="form-title">Iniciar sesión</h2>
+
             <form action="<?php echo $_SERVER['PHP_SELF'] ?>" method="post">
-                <div class="mb-4">
-                    <label for="username" class="form-label">Usuario</label>
+                <div class="form-group">
+                    <label for="username">Usuario</label>
                     <input type="text"
-                        class="form-control"
                         id="username"
                         name="username"
                         required
@@ -305,17 +246,16 @@ while ($empresaLog = mysqli_fetch_array($queryCompany)) {
                     <?php endif ?>
                 </div>
 
-                <div class="mb-4">
-                    <label for="password" class="form-label">Contraseña</label>
-                    <div class="input-group">
+                <div class="form-group">
+                    <label for="password">Contraseña</label>
+                    <div class="password-wrapper">
                         <input type="password"
-                            class="form-control"
                             id="password"
                             name="password"
                             required
                             placeholder="Ingrese su contraseña"
                             value="<?php echo isset($_COOKIE['password']) ? htmlspecialchars($_COOKIE['password']) : ''; ?>">
-                        <button class="btn btn-outline-secondary" type="button" id="togglePassword" style="border: none;">
+                        <button class="toggle-password" type="button" id="togglePassword">
                             <i class="bi bi-eye"></i>
                         </button>
                     </div>
@@ -324,56 +264,58 @@ while ($empresaLog = mysqli_fetch_array($queryCompany)) {
                     <?php endif ?>
                 </div>
 
-                <div class="mb-4 form-check">
-                    <input type="checkbox" class="form-check-input" id="rememberMe" name="rememberMe"
+                <div class="remember-row">
+                    <input type="checkbox" id="rememberMe" name="rememberMe"
                         <?php echo isset($_COOKIE['username']) ? 'checked' : ''; ?>>
-                    <input type="checkbox" class="form-check-input custom-checkbox" id="rememberMe" name="rememberMe"
-                        <?php echo isset($_COOKIE['username']) ? 'checked' : ''; ?>>
-                    <label class="form-check-label text-black" for="rememberMe" style="font-size: 1.1rem;"><span class="ms-2">Recordarme</span></label>
-                    <style>
-                        .custom-checkbox {
-                            width: 1.5em;
-                            height: 1.5em;
-                            border: 2px solid var(--primary-color);
-                            border-radius: 4px;
-                            accent-color: var(--primary-color);
-                        }
-                        .custom-checkbox:checked {
-                            background-color: var(--primary-color);
-                            border-color: var(--primary-color);
-                        }
-                    </style>
+                    <label for="rememberMe">Recordarme</label>
                 </div>
 
-                <button type="submit" class="btn btn-login text-black" name="iniciar">
-                    Iniciar sesión
+                <button type="submit" class="btn-submit" name="iniciar">
+                    <span>Iniciar sesión</span>
                 </button>
             </form>
+
+            <div class="made-by-section">
+                <small>
+                    Made by <img src="img/eagle_blanco.svg" alt="Eagle Software"> <a href="https://www.agenciaeaglesoftware.com/" class="eagle-link-footer" target="_blank">Eagle Software</a> &copy; <?php echo date("Y"); ?>. <br>Todos los derechos reservados a <?php echo $empresa ?>.
+                </small>
+            </div>
         </div>
     </div>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vanta@0.5.24/dist/vanta.dots.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.js"></script>
     <script>
-        // Ocultar splash cuando la página esté completamente cargada
         window.addEventListener('load', function () {
             var splash = document.getElementById('splash-screen');
-            // Pequeño retardo mínimo para que el splash sea visible
             setTimeout(function () {
                 splash.classList.add('hidden');
                 splash.addEventListener('transitionend', function () {
                     splash.remove();
                 }, { once: true });
             }, 600);
+
+            VANTA.DOTS({
+                el: "#vanta-bg",
+                mouseControls: true,
+                touchControls: true,
+                gyroControls: false,
+                minHeight: 200.00,
+                minWidth: 200.00,
+                scale: 1.00,
+                scaleMobile: 1.00,
+                color: 0x30336b,
+                color2: 0x007a7a,
+                backgroundColor: 0x0c0c1d
+            });
         });
-    </script>
-    <script src="js/tooglePassword.js"></script>
-    <script src="components/hooks/lineLogin.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
+
         document.getElementById('togglePassword').addEventListener('click', function() {
             const passwordInput = document.getElementById('password');
             const icon = this.querySelector('i');
 
-            // Alternar el tipo de entrada entre 'password' y 'text'
             if (passwordInput.type === 'password') {
                 passwordInput.type = 'text';
                 icon.classList.remove('bi-eye');
@@ -384,18 +326,7 @@ while ($empresaLog = mysqli_fetch_array($queryCompany)) {
                 icon.classList.add('bi-eye');
             }
         });
-
-        // Cambiar automáticamente entre modo oscuro y claro según la hora
-        const currentHour = new Date().getHours(); // Obtener la hora actual
-        if (currentHour >= 18 || currentHour < 6) {
-            // Si es después de las 6 PM o antes de las 6 AM, activar modo oscuro
-            document.body.classList.add('dark-mode');
-        } else {
-            // De lo contrario, activar modo claro
-            document.body.classList.add('dark-mode');
-        }
     </script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.js"></script>
 </body>
 
 </html>

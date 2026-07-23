@@ -122,7 +122,7 @@ if (isset($_SESSION['campos_incompletos']) && $_SESSION['campos_incompletos'] ==
 
 
 <?php include("controller/footer.php"); ?>
-<?php //include("controller/botonFlotanteDerecho.php"); 
+<?php include("controller/botonFlotanteDerecho.php"); 
 ?>
 <?php include("components/sliderBarBotton.php"); ?>
 <!-- Scripts de Bootstrap, DataTables y personalizaciones -->

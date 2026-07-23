@@ -242,11 +242,15 @@ if (session_status() == PHP_SESSION_NONE) {
         // Guardar asistencia
         $('#saveAttendance').click(function() {
             const attendanceData = {};
+            const absentExplicitos = [];
 
             $('input[type="radio"]:checked').each(function() {
                 const studentId = $(this).attr('name').split('_')[2];
                 const status = $(this).data('estado');
                 attendanceData[studentId] = status;
+                if (status === 'ausente') {
+                    absentExplicitos.push(studentId);
+                }
             });
 
             if (Object.keys(attendanceData).length === 0) {
@@ -258,38 +262,87 @@ if (session_status() == PHP_SESSION_NONE) {
                 return;
             }
 
+            const totalEstudiantes = $('#listaInscritos tbody tr').length;
+            const seleccionados = Object.keys(attendanceData).length;
+            const noMarcados = totalEstudiantes - seleccionados;
+            const totalAusentes = noMarcados + absentExplicitos.length;
+
             const postData = {
                 grade_level: $('#grade_level').val(),
                 class_date: $('#class_date').val(),
                 attendance: attendanceData
             };
 
-            $.ajax({
-                url: 'components/attendance/guardar_asistencia.php',
-                type: 'POST',
-                contentType: 'application/json',
-                data: JSON.stringify(postData),
-                success: function(response) {
-                    if (response.success) {
-                        Swal.fire({
-                            icon: 'success',
-                            title: 'Éxito',
-                            text: 'Asistencias guardadas correctamente'
-                        }).then((result) => {
-                            // Recargar la página después de cerrar el alert
-                            location.reload();
-                        });
-                    } else {
+            let mensajeConfirmacion = '';
+            if (totalAusentes > 0) {
+                mensajeConfirmacion = '<p>Se guardará la asistencia de <strong>' + totalEstudiantes + '</strong> estudiantes.</p>' +
+                    '<p class="text-warning"><i class="fa fa-exclamation-triangle"></i> <strong>' + totalAusentes + '</strong> estudiante(s) quedarán registrados como <strong>ausentes</strong> ' +
+                    'y recibirán una notificación por correo electrónico (al acudiente o al estudiante, según corresponda).</p>' +
+                    '<p class="mb-0">' + seleccionados + ' estudiante(s) marcados manualmente (' + (seleccionados - absentExplicitos.length) + ' presente/tarde, ' + absentExplicitos.length + ' ausente explícito).</p>';
+            } else {
+                mensajeConfirmacion = '<p>Se guardará la asistencia de <strong>' + totalEstudiantes + '</strong> estudiantes.</p>' +
+                    '<p class="text-success mb-0">Todos los estudiantes tienen asistencia registrada. No se enviarán notificaciones por correo.</p>';
+            }
+
+            Swal.fire({
+                icon: 'question',
+                title: 'Confirmar guardado',
+                html: mensajeConfirmacion,
+                showCancelButton: true,
+                confirmButtonText: 'Sí, guardar',
+                cancelButtonText: 'Cancelar',
+                confirmButtonColor: '#1a237e',
+                cancelButtonColor: '#6c757d'
+            }).then((result) => {
+                if (!result.isConfirmed) return;
+
+                Swal.fire({
+                    title: 'Guardando asistencias...',
+                    html: 'Por favor espere mientras se procesan los registros y se envían las notificaciones.',
+                    allowOutsideClick: false,
+                    allowEscapeKey: false,
+                    showConfirmButton: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
+
+                $.ajax({
+                    url: 'components/attendance/guardar_asistencia.php',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify(postData),
+                    success: function(response) {
+                        Swal.close();
+                        if (response.success) {
+                            let successMsg = 'Asistencias guardadas correctamente.';
+                            if (response.emails_sent !== undefined && response.emails_sent > 0) {
+                                successMsg += ' Se enviaron ' + response.emails_sent + ' notificaciones por correo.';
+                            }
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Éxito',
+                                text: successMsg
+                            }).then(() => {
+                                location.reload();
+                            });
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error',
+                                text: response.error || 'Error desconocido'
+                            });
+                        }
+                    },
+                    error: function(xhr) {
+                        Swal.close();
                         Swal.fire({
                             icon: 'error',
                             title: 'Error',
-                            text: response.error || 'Error desconocido'
+                            text: 'Error en la solicitud: ' + xhr.responseText
                         });
                     }
-                },
-                error: function(xhr) {
-                    alert('Error en la solicitud: ' + xhr.responseText);
-                }
+                });
             });
         });
 

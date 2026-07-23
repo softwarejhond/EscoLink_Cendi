@@ -5,6 +5,7 @@ ini_set('display_errors', 1);
 
 session_start();
 require_once __DIR__ . '/../../controller/conexion.php';
+require_once __DIR__ . '/send_absence_email.php';
 
 header('Content-Type: application/json');
 
@@ -108,19 +109,23 @@ try {
     }
 
     $errors = [];
-    $teacher_id = $_SESSION['username']; // Usar el username de la sesión como teacher_id
-    
-    foreach ($attendance as $student_id => $status) {
-        $modality = 'Presencial'; // Valor por defecto, puedes ajustarlo según necesites
+    $teacher_id = $_SESSION['username'];
+    $absentStudents = [];
 
-        // Insertar registro de asistencia (sin sede y recorded_hours)
-        mysqli_stmt_bind_param($stmt, "ssssss", 
-            $teacher_id,      // teacher_id
-            $student_id,      // student_id 
-            $grade_level,     // grade_level
-            $modality,        // modality
-            $class_date,      // class_date
-            $status          // attendance_status
+    foreach ($attendance as $student_id => $status) {
+        $modality = 'Presencial';
+
+        if ($status === 'ausente') {
+            $absentStudents[] = $student_id;
+        }
+
+        mysqli_stmt_bind_param($stmt, "ssssss",
+            $teacher_id,
+            $student_id,
+            $grade_level,
+            $modality,
+            $class_date,
+            $status
         );
         
         if (!mysqli_stmt_execute($stmt)) {
@@ -137,11 +142,19 @@ try {
     
     // Si todo salió bien, confirmar la transacción
     mysqli_commit($conn);
-    
+
+    $emailsSent = 0;
+    foreach ($absentStudents as $student_id) {
+        if (sendAbsenceEmail($conn, $student_id, $class_date, $grade_level, '')) {
+            $emailsSent++;
+        }
+    }
+
     echo json_encode([
         'success' => true, 
         'message' => 'Asistencias guardadas correctamente',
-        'records_saved' => count($attendance)
+        'records_saved' => count($attendance),
+        'emails_sent' => $emailsSent
     ]);
 
 } catch (Exception $e) {
