@@ -392,6 +392,8 @@ if (session_status() == PHP_SESSION_NONE) {
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
 <script>
+    const currentUsername = '<?php echo isset($_SESSION["username"]) ? $_SESSION["username"] : ""; ?>';
+
     // Instancias globales de Chart.js
     let chartDistribution = null;
     let chartTrend        = null;
@@ -1013,6 +1015,7 @@ if (session_status() == PHP_SESSION_NONE) {
                                 data-bs-toggle="modal" 
                                 data-bs-target="#genericObservationModal"
                                 data-student-id="${student.document_number}"
+                                data-student-db-id="${student.id}"
                                 data-student-name="${student.name}"
                                 data-grade-level="${student.grade_level}"
                                 data-class-date="${classDate}"
@@ -1127,15 +1130,6 @@ if (session_status() == PHP_SESSION_NONE) {
                         </div>
                         <div class="mb-3" id="attendanceStatusContainer" style="display:none;">
                             <span class="badge" id="attendanceStatusBadge"></span>
-                        </div>
-
-                        <!-- Notificacion de incapacidad -->
-                        <div class="alert alert-warning border-0 d-flex align-items-center" id="incapacidadNotification" style="display:none; background: linear-gradient(135deg, #fff8e1, #ffecb3); border-left: 4px solid #e65100 !important;">
-                            <i class="fas fa-file-medical text-danger fs-5 me-3"></i>
-                            <div>
-                                <strong>Incapacidad medica registrada</strong>
-                                <p class="mb-0 small">Este estudiante tiene una incapacidad vigente en esta fecha. La ausencia esta justificada por el reporte medico.</p>
-                            </div>
                         </div>
 
                         <!-- Historial de observaciones -->
@@ -1398,17 +1392,19 @@ if (session_status() == PHP_SESSION_NONE) {
 
     // Configurar event listeners para los modales
     function setupModalEventListeners() {
-        // Event listener para botones de observación
-        $(document).off('click', '.observation-btn').on('click', '.observation-btn', function(e) {
-            e.preventDefault();
 
-            const studentId = $(this).data('student-id');
-            const studentName = $(this).data('student-name');
-            const gradeLevel = $(this).data('grade-level');
-            const classDate = $(this).data('class-date');
-            const classNumber = $(this).data('class-number');
-            const attendanceStatus = $(this).data('attendance-status');
-            const attendanceText = $(this).data('attendance-text');
+    // Event listener para botones de observación
+    $(document).off('click', '.observation-btn').on('click', '.observation-btn', function(e) {
+        e.preventDefault();
+
+        const studentId = $(this).data('student-id');
+        const studentDbId = $(this).data('student-db-id');
+        const studentName = $(this).data('student-name');
+        const gradeLevel = $(this).data('grade-level');
+        const classDate = $(this).data('class-date');
+        const classNumber = $(this).data('class-number');
+        const attendanceStatus = $(this).data('attendance-status');
+        const attendanceText = $(this).data('attendance-text');
 
             $('#observationModalTitle').text('Observaci\u00f3n - Clase ' + classNumber);
             $('#observationStudentLabel').text(studentName);
@@ -1425,24 +1421,8 @@ if (session_status() == PHP_SESSION_NONE) {
             form.find('[name="class_date"]').val(classDate);
 
             $('#genericObservationModal').data('current-button', this);
-
-            // Verificar si hay incapacidad en esta fecha
-            $('#incapacidadNotification').hide();
-            $.ajax({
-                url: 'components/attendance/checkIncapacidad.php',
-                method: 'POST',
-                data: {
-                    student_id: studentId,
-                    class_date: classDate,
-                    grade_level: gradeLevel
-                },
-                dataType: 'json',
-                success: function(res) {
-                    if (res.success && res.has_incapacidad) {
-                        $('#incapacidadNotification').slideDown();
-                    }
-                }
-            });
+            $('#genericObservationModal').data('student-db-id', studentDbId);
+            $('#genericObservationModal').data('class-date', classDate);
 
             // Cargar historial de observaciones
             loadObservationGeneric(studentId, gradeLevel, classDate);
@@ -1450,9 +1430,50 @@ if (session_status() == PHP_SESSION_NONE) {
             $('#genericObservationModal').modal('show');
         });
 
-        $('#genericObservationModal').on('hidden.bs.modal', function() {
+        $('#genericObservationModal').off('shown.bs.modal').on('shown.bs.modal', function() {
+            const modal = $(this);
+            const studentDbId = modal.data('student-db-id');
+            const classDate = modal.data('class-date');
+
+            if (!studentDbId || !classDate) return;
+
+            $('.incapacidad-dinamica').remove();
+
+            $.ajax({
+                url: 'components/attendance/checkIncapacidad.php',
+                method: 'POST',
+                data: {
+                    student_id: studentDbId,
+                    class_date: classDate
+                },
+                dataType: 'json',
+                success: function(res) {
+                    console.log('checkIncapacidad:', res.has_incapacidad, res.debug);
+                    if (res.success && res.has_incapacidad) {
+                        const notificationHtml = `
+                            <div class="alert alert-warning border-0 d-flex align-items-center incapacidad-dinamica mb-3" style="background: linear-gradient(135deg, #fff8e1, #ffecb3); border-left: 4px solid #e65100 !important;">
+                                <i class="fas fa-file-medical text-danger fs-5 me-3"></i>
+                                <div>
+                                    <strong>Incapacidad medica registrada</strong>
+                                    <p class="mb-0 small">Este estudiante tiene una incapacidad vigente en esta fecha. La ausencia esta justificada por el reporte medico.</p>
+                                </div>
+                            </div>`;
+                        $('#observationHistoryList').closest('.card').after(notificationHtml);
+                    }
+                },
+                error: function() {
+                    console.error('Error al verificar incapacidad');
+                }
+            });
+        });
+
+        $('#genericObservationModal').off('hidden.bs.modal').on('hidden.bs.modal', function() {
             $('#attendanceStatusContainer').hide();
-            $('#incapacidadNotification').hide();
+            $('.incapacidad-dinamica').remove();
+        });
+
+        $('#genericObservationModal').off('show.bs.modal').on('show.bs.modal', function() {
+            $('.incapacidad-dinamica').remove();
         });
 
         // Event listener para botones de seguimiento
@@ -1627,6 +1648,17 @@ if (session_status() == PHP_SESSION_NONE) {
 
     // Guardar observación
     function saveObservationGeneric() {
+        if (!currentUsername) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Sesion no detectada',
+                text: 'Tu sesion parece haber expirado. Seras redirigido al inicio de sesion.',
+                confirmButtonText: 'Ir al login',
+                confirmButtonColor: '#e65100'
+            }).then(() => { window.location.href = 'login.php'; });
+            return;
+        }
+
         const form = $('#genericObservationForm');
         const formData = form.serialize();
         const saveButton = $('#saveObservationBtn');
@@ -1774,6 +1806,17 @@ if (session_status() == PHP_SESSION_NONE) {
 
     // Guardar gestión de asistencia
     function saveAttendanceManagementGeneric() {
+        if (!currentUsername) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Sesion no detectada',
+                text: 'Tu sesion parece haber expirado. Seras redirigido al inicio de sesion.',
+                confirmButtonText: 'Ir al login',
+                confirmButtonColor: '#e65100'
+            }).then(() => { window.location.href = 'login.php'; });
+            return;
+        }
+
         const form = $('#genericAttendanceForm');
         const formData = form.serialize();
         const saveButton = $('#saveAttendanceBtn');

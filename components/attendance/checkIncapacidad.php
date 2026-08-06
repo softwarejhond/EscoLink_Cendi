@@ -10,35 +10,48 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit;
 }
 
-$studentId = $_POST['student_id'] ?? '';
-$classDate = $_POST['class_date'] ?? '';
-$gradeLevel = $_POST['grade_level'] ?? '';
+$studentId = (int)($_POST['student_id'] ?? 0);
+$classDate = trim($_POST['class_date'] ?? '');
 
-if (empty($studentId) || empty($classDate)) {
-    echo json_encode(['success' => false, 'message' => 'Faltan datos']);
+if ($studentId <= 0 || empty($classDate)) {
+    echo json_encode(['success' => false, 'has_incapacidad' => false, 'debug' => ['student_id' => $studentId, 'class_date' => $classDate, 'error' => 'invalid_params']]);
     exit;
 }
 
-$sql = "SELECT 1 FROM el_medical_reports mr
-        JOIN el_students es ON mr.student_id = es.id
-        WHERE es.document_number = ?
-        AND ? BETWEEN mr.start_date AND mr.end_date
+$sql = "SELECT id, description, start_date, end_date FROM el_medical_reports 
+        WHERE student_id = ? 
+        AND ? BETWEEN start_date AND end_date 
         LIMIT 1";
 
 $stmt = $conn->prepare($sql);
 if (!$stmt) {
-    echo json_encode(['success' => false, 'message' => 'Error en la consulta: ' . $conn->error]);
+    echo json_encode(['success' => false, 'has_incapacidad' => false, 'debug' => ['error' => $conn->error]]);
     exit;
 }
 
-$stmt->bind_param('ss', $studentId, $classDate);
+$stmt->bind_param('is', $studentId, $classDate);
 $stmt->execute();
-$stmt->store_result();
+$result = $stmt->get_result();
 
-if ($stmt->num_rows > 0) {
-    echo json_encode(['success' => true, 'has_incapacidad' => true]);
+$debug = [
+    'student_id_recibido' => $studentId,
+    'class_date_recibida' => $classDate,
+    'sql_where' => "student_id = $studentId AND '$classDate' BETWEEN start_date AND end_date"
+];
+
+if ($result && $row = $result->fetch_assoc()) {
+    echo json_encode([
+        'success' => true,
+        'has_incapacidad' => true,
+        'incapacidad' => $row,
+        'debug' => $debug
+    ]);
 } else {
-    echo json_encode(['success' => true, 'has_incapacidad' => false]);
+    echo json_encode([
+        'success' => true,
+        'has_incapacidad' => false,
+        'debug' => $debug
+    ]);
 }
 
 $stmt->close();

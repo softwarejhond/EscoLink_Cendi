@@ -134,9 +134,15 @@ $rol = $infoUsuario['rol'];
 </div>
 
 <script>
+    let buscando = false;
+
     document.getElementById('btnBuscar').addEventListener('click', function() {
+        if (buscando) return;
+        buscando = true;
+
         const documentNumber = document.getElementById('searchDocument').value.trim();
         if (!documentNumber) {
+            buscando = false;
             Swal.fire('Error', 'Ingresa un numero de documento.', 'error');
             return;
         }
@@ -162,6 +168,7 @@ $rol = $infoUsuario['rol'];
             .then(response => response.json())
             .then(data => {
                 Swal.close();
+                buscando = false;
                 if (data.success) {
                     const emptyToSinRegistrar = function(val) { return (val != null && String(val).trim() !== '') ? val : 'SIN REGISTRAR'; };
 
@@ -190,6 +197,7 @@ $rol = $infoUsuario['rol'];
             })
             .catch(error => {
                 Swal.close();
+                buscando = false;
                 Swal.fire('Error', 'Error en la solicitud: ' + error.message, 'error');
             });
     });
@@ -203,20 +211,20 @@ $rol = $infoUsuario['rol'];
     function renderReports(reports) {
         const tbody = document.getElementById('reportsTableBody');
         const noReports = document.getElementById('noReportsMessage');
-        tbody.innerHTML = '';
 
         if ($.fn.DataTable.isDataTable('#reportsTable')) {
             $('#reportsTable').DataTable().destroy();
         }
+
+        tbody.innerHTML = '';
+        document.getElementById('reportsTable').style.display = '';
+        noReports.style.display = 'none';
 
         if (!reports || reports.length === 0) {
             noReports.style.display = 'block';
             document.getElementById('reportsTable').style.display = 'none';
             return;
         }
-
-        noReports.style.display = 'none';
-        document.getElementById('reportsTable').style.display = '';
 
         reports.forEach(report => {
             const row = document.createElement('tr');
