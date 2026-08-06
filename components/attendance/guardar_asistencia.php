@@ -30,6 +30,7 @@ if (!$data) {
 $grade_level = $data['grade_level'] ?? null;
 $class_date = $data['class_date'] ?? null;
 $attendance = $data['attendance'] ?? [];
+$incapacitados = $data['incapacitados'] ?? [];
 
 if (empty($grade_level) || empty($class_date)) {
     echo json_encode(['error' => 'Faltan datos requeridos']);
@@ -145,6 +146,9 @@ try {
 
     $emailsSent = 0;
     foreach ($absentStudents as $student_id) {
+        if (in_array($student_id, $incapacitados)) {
+            continue;
+        }
         if (sendAbsenceEmail($conn, $student_id, $class_date, $grade_level, '')) {
             $emailsSent++;
         }

@@ -52,6 +52,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
     mysqli_stmt_close($stmtCheck);
 
+    $sqlIncapacidad = "SELECT es.document_number 
+        FROM el_medical_reports mr 
+        JOIN el_students es ON mr.student_id = es.id 
+        WHERE es.grade_level = ? 
+        AND ? BETWEEN mr.start_date AND mr.end_date";
+    $stmtInca = mysqli_prepare($conn, $sqlIncapacidad);
+    if ($stmtInca) {
+        mysqli_stmt_bind_param($stmtInca, "ss", $grade_level, $class_date);
+        mysqli_stmt_execute($stmtInca);
+        $resultInca = mysqli_stmt_get_result($stmtInca);
+        $incapacitados = [];
+        while ($rowInca = mysqli_fetch_assoc($resultInca)) {
+            $incapacitados[] = $rowInca['document_number'];
+        }
+        mysqli_stmt_close($stmtInca);
+    } else {
+        $incapacitados = [];
+    }
+
     // Obtener estudiantes de la tabla el_students según el grade_level
     $sql = "SELECT 
                 id,
@@ -88,28 +107,41 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Construir el contenido de la tabla
     $tableContent = '';
     while ($row = mysqli_fetch_assoc($result)) {
-        $tableContent .= '<tr>
+        $doc = $row['document_number'];
+        $tieneIncapacidad = in_array($doc, $incapacitados);
+
+        $trClass = $tieneIncapacidad ? ' class="tr-incapacidad"' : '';
+        $ausenteChecked = $tieneIncapacidad ? ' checked' : '';
+        $ausenteDisabled = $tieneIncapacidad ? ' disabled' : '';
+        $incapacidadAttrs = $tieneIncapacidad ? ' tabindex="0" data-bs-toggle="popover" data-bs-trigger="hover focus" data-bs-placement="top" data-bs-html="true" data-bs-content="<strong><i class=\'fas fa-file-medical me-1\'></i>Incapacidad medica registrada</strong><br><small>El estudiante tiene una incapacidad vigente en esta fecha.<br>Ausente bloqueado. <strong>NO</strong> se enviara correo de ausencia.</small>"' : '';
+
+        $tableContent .= '<tr' . $trClass . $incapacidadAttrs . '>
             <td class="text-center align-middle" style="width: 8%">' . htmlspecialchars($row['document_type']) . '</td>
             <td class="text-center align-middle" style="width: auto">' . htmlspecialchars($row['document_number']) . '</td>
-            <td class="align-middle text-truncate" style="width: 30%; max-width: 300px">' . htmlspecialchars($row['name']) . '</td>
+            <td class="align-middle text-truncate" style="width: 30%; max-width: 300px">'
+                . ($tieneIncapacidad ? '<i class="fas fa-file-medical text-danger me-1" title="Incapacidad medica"></i>' : '')
+                . htmlspecialchars($row['name']) . '</td>
             <td class="align-middle">' . htmlspecialchars($row['email'] ?? '') . '</td>
             <td class="text-center align-middle">
                 <input type="radio" name="attendance_status_' . htmlspecialchars($row['document_number']) . '" 
                        class="form-check-input estado-asistencia" 
                        data-estado="presente" 
-                       data-student-id="' . htmlspecialchars($row['document_number']) . '">
+                       data-student-id="' . htmlspecialchars($row['document_number']) . '"'
+                       . ($tieneIncapacidad ? ' disabled' : '') . '>
             </td>
             <td class="text-center align-middle">
                 <input type="radio" name="attendance_status_' . htmlspecialchars($row['document_number']) . '" 
                        class="form-check-input estado-asistencia" 
                        data-estado="tarde" 
-                       data-student-id="' . htmlspecialchars($row['document_number']) . '">
+                       data-student-id="' . htmlspecialchars($row['document_number']) . '"'
+                       . ($tieneIncapacidad ? ' disabled' : '') . '>
             </td>
             <td class="text-center align-middle">
                 <input type="radio" name="attendance_status_' . htmlspecialchars($row['document_number']) . '" 
                        class="form-check-input estado-asistencia" 
                        data-estado="ausente" 
-                       data-student-id="' . htmlspecialchars($row['document_number']) . '">
+                       data-student-id="' . htmlspecialchars($row['document_number']) . '"'
+                       . $ausenteChecked . $ausenteDisabled . '>
             </td>
         </tr>';
     }
@@ -123,7 +155,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Devolver contenido de tabla simplificado
     echo json_encode([
         'html' => $tableContent,
-        'grade_level' => $grade_level
+        'grade_level' => $grade_level,
+        'incapacitados' => $incapacitados
     ]);
     exit;
 }

@@ -214,28 +214,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['excel_file'])) {
 
                 $row = array_pad($row, 22, '');
 
-                $document_type = normalizeDocumentType($row[0]);
-                $simat = trim($row[1]);
-                $document_number = (int)preg_replace('/\D/', '', $row[2]);
-                $student_code = trim($row[3]);
-                $name = normalizeText($row[4]);
-                $registration_date = !empty(trim($row[5])) ? date('Y-m-d', strtotime(str_replace('/', '-', $row[5]))) : date('Y-m-d');
-                $gender = normalizeGender($row[6]);
-                $grade_level = trim($row[7]);
-                $group_section = trim($row[8]);
-                $email = trim($row[9]);
-                $cell_phone = preg_replace('/\D/', '', $row[10]);
-                $cell_phone2 = preg_replace('/\D/', '', $row[11]);
-                $address = trim($row[12]);
-                $barrio = trim($row[13]);
-                $comuna = trim($row[14]);
-                $city = normalizeText($row[15]);
-                $sede = trim($row[16]);
-                $status = normalizeStatus($row[17]);
-                $cedula_acudiente = trim($row[18]);
-                $nombre_acudiente = trim($row[19]);
-                $email_acudiente = trim($row[20]);
-                $telefono_acudiente = trim($row[21]);
+                $document_type = normalizeDocumentType($row[0] ?? '');
+                $simat = trim($row[1] ?? '');
+                $document_number = (int)preg_replace('/\D/', '', $row[2] ?? '');
+                $student_code = trim($row[3] ?? '');
+                $name = normalizeText($row[4] ?? '');
+                $registration_date = !empty(trim($row[5] ?? '')) ? date('Y-m-d', strtotime(str_replace('/', '-', $row[5] ?? ''))) : date('Y-m-d');
+                $gender = normalizeGender($row[6] ?? '');
+                $grade_level = trim($row[7] ?? '');
+                $group_section = trim($row[8] ?? '');
+                $email = trim($row[9] ?? '');
+                $cell_phone = preg_replace('/\D/', '', $row[10] ?? '');
+                $cell_phone2 = preg_replace('/\D/', '', $row[11] ?? '');
+                $address = trim($row[12] ?? '');
+                $barrio = trim($row[13] ?? '');
+                $comuna = trim($row[14] ?? '');
+                $city = normalizeText($row[15] ?? '');
+                $sede = trim($row[16] ?? '');
+                $status = normalizeStatus($row[17] ?? '');
+                $cedula_acudiente = trim($row[18] ?? '');
+                $nombre_acudiente = trim($row[19] ?? '');
+                $email_acudiente = trim($row[20] ?? '');
+                $telefono_acudiente = trim($row[21] ?? '');
                 $updated_by = null;
 
                 // Validar campos obligatorios
@@ -260,7 +260,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['excel_file'])) {
                 if ($count > 0) {
                     // Actualizar
                     $stmt = $conn->prepare("UPDATE el_students SET student_code=?, document_type=?, name=?, grade_level=?, gender=?, email=?, cell_phone=?, address=?, city=?, status=?, registration_date=?, sede=?, simat=?, cell_phone2=?, barrio=?, comuna=?, updated_by=?, cedula_acudiente=?, nombre_acudiente=?, email_acudiente=?, telefono_acudiente=? WHERE document_number=?");
-                    $stmt->bind_param("ssssssssssssssssssssssi", $student_code, $document_type, $name, $grade_level, $gender, $email, $cell_phone, $address, $city, $status, $registration_date, $sede, $simat, $cell_phone2, $barrio, $comuna, $updated_by, $cedula_acudiente, $nombre_acudiente, $email_acudiente, $telefono_acudiente, $document_number);
+                    $stmt->bind_param("sssssssssssssssssssssi", $student_code, $document_type, $name, $grade_level, $gender, $email, $cell_phone, $address, $city, $status, $registration_date, $sede, $simat, $cell_phone2, $barrio, $comuna, $updated_by, $cedula_acudiente, $nombre_acudiente, $email_acudiente, $telefono_acudiente, $document_number);
                     if ($stmt->execute()) {
                         $updates++;
                         writeErrorToLog("SUCCESS - Fila $rowNumber: Estudiante $document_number actualizado correctamente");

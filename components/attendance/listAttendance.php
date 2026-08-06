@@ -16,7 +16,6 @@ if (session_status() == PHP_SESSION_NONE) {
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet">
     <style>
-        /* Estilos para la tabla */
         #listaInscritos {
             table-layout: fixed;
         }
@@ -171,6 +170,8 @@ if (session_status() == PHP_SESSION_NONE) {
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script>
+        let incapacitadosList = [];
+
         $(document).ready(function() {
 
             // Inicializar Select2 en el selector de grados
@@ -204,6 +205,9 @@ if (session_status() == PHP_SESSION_NONE) {
                     data: data,
                     dataType: 'json',
                     success: (response) => {
+                        // Guardar lista de incapacitados
+                        incapacitadosList = response.incapacitados || [];
+
                         // Verificar si ya existe un registro de asistencia
                         if (response.exists) {
                             Swal.fire({
@@ -222,6 +226,26 @@ if (session_status() == PHP_SESSION_NONE) {
 
                         if (response && response.html) {
                             $('#listaInscritos tbody').html(response.html);
+
+                            // Inicializar popovers en filas con incapacidad
+                            setTimeout(() => {
+                                $('[data-bs-toggle="popover"]').popover({
+                                    container: 'body',
+                                    trigger: 'hover focus'
+                                });
+                            }, 200);
+
+                            // Avisar si hay estudiantes con incapacidad
+                            if (incapacitadosList.length > 0) {
+                                Swal.fire({
+                                    icon: 'info',
+                                    title: 'Incapacidades detectadas',
+                                    html: '<p>Se encontr' + (incapacitadosList.length === 1 ? 'o' : 'aron') + ' <strong>' + incapacitadosList.length + '</strong> estudiante' + (incapacitadosList.length === 1 ? '' : 's') + ' con incapacidad medica vigente en esta fecha.</p>' +
+                                          '<p class="mb-0 text-muted small">Aparecen resaltados en naranja con <i class="fas fa-file-medical text-danger"></i>. Su asistencia queda bloqueada como <strong>Ausente</strong> y <strong>NO</strong> recibiran correo de ausencia.</p>',
+                                    confirmButtonText: 'Entendido',
+                                    confirmButtonColor: '#e65100'
+                                });
+                            }
                         } else {
                             $('#listaInscritos tbody').html('<tr><td colspan="7" class="text-center">No se encontraron registros</td></tr>');
                         }
@@ -266,22 +290,35 @@ if (session_status() == PHP_SESSION_NONE) {
             const seleccionados = Object.keys(attendanceData).length;
             const noMarcados = totalEstudiantes - seleccionados;
             const totalAusentes = noMarcados + absentExplicitos.length;
+            const ausentesConIncapacidad = incapacitadosList.length;
+            const ausentesConNotificacion = totalAusentes - ausentesConIncapacidad;
 
             const postData = {
                 grade_level: $('#grade_level').val(),
                 class_date: $('#class_date').val(),
-                attendance: attendanceData
+                attendance: attendanceData,
+                incapacitados: incapacitadosList
             };
 
             let mensajeConfirmacion = '';
             if (totalAusentes > 0) {
-                mensajeConfirmacion = '<p>Se guardará la asistencia de <strong>' + totalEstudiantes + '</strong> estudiantes.</p>' +
-                    '<p class="text-warning"><i class="fa fa-exclamation-triangle"></i> <strong>' + totalAusentes + '</strong> estudiante(s) quedarán registrados como <strong>ausentes</strong> ' +
-                    'y recibirán una notificación por correo electrónico (al acudiente o al estudiante, según corresponda).</p>' +
-                    '<p class="mb-0">' + seleccionados + ' estudiante(s) marcados manualmente (' + (seleccionados - absentExplicitos.length) + ' presente/tarde, ' + absentExplicitos.length + ' ausente explícito).</p>';
+                mensajeConfirmacion = '<p>Se guardara la asistencia de <strong>' + totalEstudiantes + '</strong> estudiantes.</p>' +
+                    '<p class="text-warning"><i class="fa fa-exclamation-triangle"></i> <strong>' + totalAusentes + '</strong> estudiante(s) quedaran registrados como <strong>ausentes</strong>.</p>';
+
+                if (ausentesConIncapacidad > 0) {
+                    mensajeConfirmacion += '<p class="text-info"><i class="fas fa-file-medical"></i> De ellos, <strong>' + ausentesConIncapacidad + '</strong> tiene(n) incapacidad medica vigente: <strong>NO</strong> recibiran correo de ausencia.</p>';
+                }
+
+                if (ausentesConNotificacion > 0) {
+                    mensajeConfirmacion += '<p class="text-warning"><i class="fa fa-envelope"></i> <strong>' + ausentesConNotificacion + '</strong> estudiante(s) restante(s) <strong>SI</strong> recibiran notificacion por correo.</p>';
+                } else {
+                    mensajeConfirmacion += '<p class="text-success"><i class="fa fa-check-circle"></i> Ningun estudiante recibira correo de ausencia.</p>';
+                }
+
+                mensajeConfirmacion += '<p class="mb-0 small text-muted">' + seleccionados + ' marcados manualmente (' + (seleccionados - absentExplicitos.length) + ' presente/tarde, ' + absentExplicitos.length + ' ausente explicito).</p>';
             } else {
-                mensajeConfirmacion = '<p>Se guardará la asistencia de <strong>' + totalEstudiantes + '</strong> estudiantes.</p>' +
-                    '<p class="text-success mb-0">Todos los estudiantes tienen asistencia registrada. No se enviarán notificaciones por correo.</p>';
+                mensajeConfirmacion = '<p>Se guardara la asistencia de <strong>' + totalEstudiantes + '</strong> estudiantes.</p>' +
+                    '<p class="text-success mb-0">Todos los estudiantes tienen asistencia registrada. No se enviaran notificaciones por correo.</p>';
             }
 
             Swal.fire({

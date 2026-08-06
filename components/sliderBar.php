@@ -95,6 +95,25 @@ require_once __DIR__ . '/../components/addUsers/swalAddUser.php';
                                 data-bs-toggle="popover"
                                 data-bs-trigger="hover focus"
                                 data-bs-placement="bottom"
+                                data-bs-content="Reportar incapacidad de un estudiante">
+                                <a href="reportarIncapacidad.php">
+                                    <label class="checkbox-wrapper">
+                                        <span class="checkbox-tile">
+                                            <span class="checkbox-icon">
+                                                <i class="bi bi-clipboard2-pulse icono"></i>
+                                            </span>
+                                            <span class="checkbox-label">Reportar</span>
+                                        </span>
+                                    </label>
+                                </a>
+                            </div>
+                        </div>
+
+                        <div class="col-4">
+                            <div class="checkbox"
+                                data-bs-toggle="popover"
+                                data-bs-trigger="hover focus"
+                                data-bs-placement="bottom"
                                 data-bs-content="Edición de asistencias por grupos">
                                 <a href="editarAsistencia.php">
                                     <label class="checkbox-wrapper">

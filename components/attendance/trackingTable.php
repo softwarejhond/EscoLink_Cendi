@@ -1129,6 +1129,15 @@ if (session_status() == PHP_SESSION_NONE) {
                             <span class="badge" id="attendanceStatusBadge"></span>
                         </div>
 
+                        <!-- Notificacion de incapacidad -->
+                        <div class="alert alert-warning border-0 d-flex align-items-center" id="incapacidadNotification" style="display:none; background: linear-gradient(135deg, #fff8e1, #ffecb3); border-left: 4px solid #e65100 !important;">
+                            <i class="fas fa-file-medical text-danger fs-5 me-3"></i>
+                            <div>
+                                <strong>Incapacidad medica registrada</strong>
+                                <p class="mb-0 small">Este estudiante tiene una incapacidad vigente en esta fecha. La ausencia esta justificada por el reporte medico.</p>
+                            </div>
+                        </div>
+
                         <!-- Historial de observaciones -->
                         <div class="card border mb-3 w-100">
                             <div class="card-header bg-light py-2">
@@ -1417,6 +1426,24 @@ if (session_status() == PHP_SESSION_NONE) {
 
             $('#genericObservationModal').data('current-button', this);
 
+            // Verificar si hay incapacidad en esta fecha
+            $('#incapacidadNotification').hide();
+            $.ajax({
+                url: 'components/attendance/checkIncapacidad.php',
+                method: 'POST',
+                data: {
+                    student_id: studentId,
+                    class_date: classDate,
+                    grade_level: gradeLevel
+                },
+                dataType: 'json',
+                success: function(res) {
+                    if (res.success && res.has_incapacidad) {
+                        $('#incapacidadNotification').slideDown();
+                    }
+                }
+            });
+
             // Cargar historial de observaciones
             loadObservationGeneric(studentId, gradeLevel, classDate);
 
@@ -1425,6 +1452,7 @@ if (session_status() == PHP_SESSION_NONE) {
 
         $('#genericObservationModal').on('hidden.bs.modal', function() {
             $('#attendanceStatusContainer').hide();
+            $('#incapacidadNotification').hide();
         });
 
         // Event listener para botones de seguimiento
