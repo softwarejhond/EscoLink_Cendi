@@ -50,6 +50,47 @@ require_once __DIR__ . '/../components/addUsers/swalAddUser.php';
                         </div>
                     <?php endif; ?>
 
+                    <?php if ($rol === 'Permanencia'): ?>
+
+                        <div class="col-4">
+                            <div class="checkbox"
+                                data-bs-toggle="popover"
+                                data-bs-trigger="hover focus"
+                                data-bs-placement="bottom"
+                                data-bs-content="Seguimiento de asistencias">
+                                <a href="attendance_tracking.php">
+                                    <label class="checkbox-wrapper">
+                                        <span class="checkbox-tile">
+                                            <span class="checkbox-icon">
+                                                <i class="bi bi-journals icono"></i>
+                                            </span>
+                                            <span class="checkbox-label">Seguimiento</span>
+                                        </span>
+                                    </label>
+                                </a>
+                            </div>
+                        </div>
+
+                        <div class="col-4">
+                            <div class="checkbox"
+                                data-bs-toggle="popover"
+                                data-bs-trigger="hover focus"
+                                data-bs-placement="bottom"
+                                data-bs-content="Reportar incapacidad de un estudiante">
+                                <a href="reportarIncapacidad.php">
+                                    <label class="checkbox-wrapper">
+                                        <span class="checkbox-tile">
+                                            <span class="checkbox-icon">
+                                                <i class="bi bi-clipboard2-pulse icono"></i>
+                                            </span>
+                                            <span class="checkbox-label">Reportar</span>
+                                        </span>
+                                    </label>
+                                </a>
+                            </div>
+                        </div>
+                    <?php endif; ?>
+
                     <?php if ($rol === 'Administrador' || $rol === 'Control maestro' || $rol === 'Asesor'): ?>
 
                         <div class="col-4">

@@ -83,6 +83,10 @@ usort($grades, function ($a, $b) {
         background-color: #0d6efd;
     }
 
+    .badge-pendiente-retiro {
+        background-color: #ffc107;
+    }
+
     #totalEstudiantes {
         opacity: 1 !important;
         pointer-events: none;
@@ -191,13 +195,13 @@ usort($grades, function ($a, $b) {
                     <i class="bi bi-people-fill me-1"></i>Total: 0
                 </button>
                 <button id="btnAsignarMaestro" class="btn toolbar-btn bg-teal-dark text-white flex-fill" disabled>
-                    <i class="bi bi-person-check-fill me-1"></i> Director de Grupo
+                    <i class="bi bi-person-check-fill me-1"></i> Asignación de Permanencia
                 </button>
                 <button id="btnNuevoEstudiante" class="btn toolbar-btn bg-indigo-dark text-white flex-fill" disabled>
                     <i class="bi bi-person-plus-fill me-1"></i> Nuevo Estudiante
                 </button>
                 <button id="btnAsignarDocentes" class="btn toolbar-btn bg-magenta-dark text-white flex-fill" disabled>
-                    <i class="bi bi-people-fill me-1"></i> Asignar Docentes
+                    <i class="bi bi-people-fill me-1"></i> Extras de Permanencia
                 </button>
             </div>
         </div>
@@ -250,12 +254,12 @@ usort($grades, function ($a, $b) {
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="teacherModalLabel">Director de Grupo</h5>
+                <h5 class="modal-title" id="teacherModalLabel">Asignación de Permanencia</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
             </div>
             <div class="modal-body">
                 <div id="currentDirectorInfo" class="current-assignment-card" style="display:none;">
-                    <div class="label">Director actual</div>
+                    <div class="label">Permanencia actual</div>
                     <div class="d-flex align-items-center justify-content-between">
                         <span class="value" id="currentDirectorName"></span>
                         <button class="btn btn-sm btn-outline-danger" id="btnRemoveDirector">
@@ -264,17 +268,17 @@ usort($grades, function ($a, $b) {
                     </div>
                 </div>
                 <div id="noDirectorInfo" class="current-assignment-card" style="display:none;">
-                    <div class="label">Director actual</div>
-                    <div class="value text-muted">Sin director asignado</div>
+                    <div class="label">Permanencia actual</div>
+                    <div class="value text-muted">Sin permanencia asignada</div>
                 </div>
                 <div id="teacherModalLoading" class="text-center py-4">
                     <div class="spinner-border text-success" role="status">
                         <span class="visually-hidden">Cargando...</span>
                     </div>
-                    <p class="mt-2 text-muted">Cargando maestros...</p>
+                    <p class="mt-2 text-muted">Cargando usuarios...</p>
                 </div>
                 <div id="teacherModalContent" style="display:none;">
-                    <p class="text-muted mb-2">Cambiar director del grupo <strong id="teacherModalGroupName"></strong>:</p>
+                    <p class="text-muted mb-2">Cambiar permanencia del grupo <strong id="teacherModalGroupName"></strong>:</p>
                     <select id="teacherSelect" class="form-select" style="width:100%;">
                         <option value="">-- Sin asignar --</option>
                     </select>
@@ -296,7 +300,7 @@ usort($grades, function ($a, $b) {
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="teachersExtraModalLabel">Docentes del Grupo</h5>
+                <h5 class="modal-title" id="teachersExtraModalLabel">Docentes de Permanencia</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
             </div>
             <div class="modal-body">
@@ -315,7 +319,7 @@ usort($grades, function ($a, $b) {
                     <p class="mt-2 text-muted">Cargando docentes...</p>
                 </div>
                 <div id="teachersExtraModalContent" style="display:none;">
-                    <p class="text-muted mb-2">A&ntilde;adir docentes al grupo <strong id="teachersExtraModalGroupName"></strong>:</p>
+                    <p class="text-muted mb-2">A&ntilde;adir docentes de permanencia al grupo <strong id="teachersExtraModalGroupName"></strong>:</p>
                     <select id="teachersExtraSelect" class="form-select" multiple="multiple" style="width:100%;">
                     </select>
                     <p class="text-muted mt-2 small">Busque por nombre o n&uacute;mero de documento y seleccione para a&ntilde;adir.</p>
@@ -414,7 +418,8 @@ usort($grades, function ($a, $b) {
             const statusBadge = {
                 ACTIVO: 'badge-activo',
                 RETIRADO: 'badge-retirado',
-                GRADUADO: 'badge-graduado'
+                GRADUADO: 'badge-graduado',
+                'PENDIENTE RETIRO': 'badge-pendiente-retiro'
             };
 
             const rows = students.map(function(s, idx) {
@@ -540,6 +545,7 @@ usort($grades, function ($a, $b) {
                     <select class="form-select form-select-sm" id="sf-status">
                         <option value="ACTIVO"${(student.status||'ACTIVO') === 'ACTIVO' ? ' selected' : ''}>ACTIVO</option>
                         <option value="RETIRADO"${student.status === 'RETIRADO' ? ' selected' : ''}>RETIRADO</option>
+                        <option value="PENDIENTE RETIRO"${student.status === 'PENDIENTE RETIRO' ? ' selected' : ''}>PENDIENTE RETIRO</option>
                         <option value="GRADUADO"${student.status === 'GRADUADO' ? ' selected' : ''}>GRADUADO</option>
                     </select>
                 </div>
@@ -775,7 +781,7 @@ usort($grades, function ($a, $b) {
         // ── Actualizar texto del boton segun director asignado ──
         function updateTeacherButton(gradeLevel) {
             if (!gradeLevel) {
-                $('#btnAsignarMaestro').html('<i class="bi bi-person-check-fill me-1"></i> Director de Grupo');
+                $('#btnAsignarMaestro').html('<i class="bi bi-person-check-fill me-1"></i> Asignación de Permanencia');
                 return;
             }
 
@@ -788,13 +794,13 @@ usort($grades, function ($a, $b) {
                 dataType: 'json',
                 success: function(response) {
                     if (response.success && response.assigned_teacher) {
-                        $('#btnAsignarMaestro').html('<i class="bi bi-person-check-fill me-1"></i> Director: ' + escHtml(response.assigned_teacher.nombre));
+                        $('#btnAsignarMaestro').html('<i class="bi bi-person-check-fill me-1"></i> Permanencia: ' + escHtml(response.assigned_teacher.nombre));
                     } else {
-                        $('#btnAsignarMaestro').html('<i class="bi bi-person-check-fill me-1"></i> Director de Grupo');
+                        $('#btnAsignarMaestro').html('<i class="bi bi-person-check-fill me-1"></i> Asignación de Permanencia');
                     }
                 },
                 error: function() {
-                    $('#btnAsignarMaestro').html('<i class="bi bi-person-check-fill me-1"></i> Director de Grupo');
+                    $('#btnAsignarMaestro').html('<i class="bi bi-person-check-fill me-1"></i> Asignación de Permanencia');
                 }
             });
         }
@@ -846,13 +852,13 @@ usort($grades, function ($a, $b) {
                     }
 
                     $select.select2({
-                        placeholder: 'Buscar maestro por nombre o documento...',
+                        placeholder: 'Buscar usuario por nombre o documento...',
                         allowClear: true,
                         width: '100%',
                         dropdownParent: $('#teacherModal'),
                         language: {
                             noResults: function() {
-                                return 'No se encontraron maestros.';
+                                return 'No se encontraron usuarios.';
                             },
                             searching: function() {
                                 return 'Buscando...';
@@ -1126,7 +1132,7 @@ usort($grades, function ($a, $b) {
                     $('#studentsTableWrapper').hide();
                     $('#studentsPlaceholder').show();
                     $('#totalEstudiantes').html('<i class="bi bi-people-fill me-1"></i>Total: 0');
-                    $('#btnAsignarMaestro').html('<i class="bi bi-person-check-fill me-1"></i> Director de Grupo');
+                    $('#btnAsignarMaestro').html('<i class="bi bi-person-check-fill me-1"></i> Asignación de Permanencia');
                     return;
                 }
                 loadStudents(currentGradeLevel);
@@ -1138,7 +1144,7 @@ usort($grades, function ($a, $b) {
                 openStudentForm(null);
             });
 
-            // Director de Grupo (un solo maestro)
+            // Asignación de Permanencia (un solo maestro)
             $('#btnAsignarMaestro').on('click', function() {
                 if (!currentGradeLevel) return;
                 loadTeachersForModal(currentGradeLevel);
@@ -1153,8 +1159,8 @@ usort($grades, function ($a, $b) {
             // Quitar director (auto-save con vacio)
             $('#btnRemoveDirector').on('click', function() {
                 Swal.fire({
-                    title: 'Quitar director',
-                    text: 'Se eliminar\u00e1 el director asignado a este grupo.',
+                    title: 'Quitar permanencia',
+                    text: 'Se eliminar\u00e1 la permanencia asignada a este grupo.',
                     icon: 'warning',
                     showCancelButton: true,
                     confirmButtonColor: '#dc3545',

@@ -6,11 +6,11 @@ if (session_status() == PHP_SESSION_NONE) {
 
 header('Content-Type: application/json');
 
-// Verificar que el usuario tiene permisos (rol != 5)
+// Verificar que el usuario tiene permisos (rol != 14)
 $currentRol = $_SESSION['rol'] ?? null;
 $currentUser = $_SESSION['username'] ?? null;
 
-if ($currentRol == 5 || !$currentUser) {
+if ($currentRol == 14 || !$currentUser) {
     echo json_encode(['success' => false, 'message' => 'No tienes permisos para realizar esta asignación.']);
     exit;
 }
@@ -60,7 +60,7 @@ try {
 
     echo json_encode([
         'success' => true,
-        'message' => $teacher_username ? 'Maestro asignado correctamente.' : 'Maestro desasignado correctamente.'
+        'message' => $teacher_username ? 'Usuario asignado correctamente.' : 'Usuario desasignado correctamente.'
     ]);
 } catch (Exception $e) {
     $conn->rollback();

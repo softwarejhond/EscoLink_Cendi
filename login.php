@@ -2,6 +2,10 @@
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
+// Extender vida de la sesión (1 día)
+ini_set('session.gc_maxlifetime', 86400);
+session_set_cookie_params(86400);
+
 // Inicializar la sesión
 session_start();
 

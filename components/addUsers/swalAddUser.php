@@ -6,7 +6,7 @@ function showAddUserSwal() {
     if (offcanvas) offcanvas.hide();
 
     const userRol = '<?php echo $rol; ?>'; // Rol del usuario logueado (string, asumiendo conversión si es necesario)
-    let rolOptions = '<option value="1">Administrador</option><option value="5">Docente</option>';
+    let rolOptions = '<option value="1">Administrador</option><option value="5">Docente</option><option value="14">Permanencia</option>';
     if (userRol === 'Control maestro') {
         rolOptions += '<option value="12">Control maestro</option>';
     }

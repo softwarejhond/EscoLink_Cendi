@@ -141,7 +141,7 @@ if (session_status() == PHP_SESSION_NONE) {
                             $username = $_SESSION['username'] ?? null;
                             $grades = [];
 
-                            if ($rol == 5) {
+                            if ($rol == 5 || $rol == 14) {
                                 $query = "SELECT DISTINCT e.grade_level FROM el_students e
                                           WHERE e.grade_level IS NOT NULL AND e.grade_level <> ''
                                           AND (
@@ -1101,6 +1101,8 @@ if (session_status() == PHP_SESSION_NONE) {
                 return 'bg-danger';
             case 'Retirado':
                 return 'bg-dark';
+            case 'PENDIENTE RETIRO':
+                return 'bg-warning text-dark';
             default:
                 return 'bg-secondary';
         }
@@ -1674,6 +1676,16 @@ if (session_status() == PHP_SESSION_NONE) {
             dataType: 'json',
             timeout: 10000,
             success: function(response) {
+                if (response.session_expired) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Sesion no detectada',
+                        text: response.message || 'Tu sesion ha expirado. Inicie sesion nuevamente.',
+                        confirmButtonText: 'Ir al login',
+                        confirmButtonColor: '#e65100'
+                    }).then(() => { window.location.href = 'login.php'; });
+                    return;
+                }
                 if (response.success) {
                     Swal.fire({
                         icon: 'success',

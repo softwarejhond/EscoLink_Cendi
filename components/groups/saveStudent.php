@@ -57,7 +57,7 @@ if (!in_array($gender, $valid_genders, true)) {
 }
 
 // Estados válidos
-$valid_statuses = ['ACTIVO', 'RETIRADO', 'GRADUADO'];
+$valid_statuses = ['ACTIVO', 'RETIRADO', 'PENDIENTE RETIRO', 'GRADUADO'];
 if (!in_array($status, $valid_statuses, true)) {
     exit(json_encode(['success' => false, 'message' => 'Estado inválido']));
 }

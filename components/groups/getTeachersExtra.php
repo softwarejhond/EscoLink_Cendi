@@ -25,7 +25,7 @@ if (empty($grade_level)) {
     exit;
 }
 
-$queryTeachers = "SELECT id, username, nombre, email FROM users WHERE rol = 5 AND orden = 1 ORDER BY nombre ASC";
+$queryTeachers = "SELECT id, username, nombre, email FROM users WHERE rol = 14 AND orden = 1 ORDER BY nombre ASC";
 $resultTeachers = $conn->query($queryTeachers);
 
 $teachers = [];

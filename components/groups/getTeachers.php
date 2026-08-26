@@ -26,8 +26,8 @@ if (empty($grade_level)) {
     exit;
 }
 
-// Obtener todos los usuarios con rol = 5 (Docente) y activos (orden = 1)
-$queryTeachers = "SELECT id, username, nombre, email FROM users WHERE rol = 5 AND orden = 1 ORDER BY nombre ASC";
+// Obtener todos los usuarios con rol = 14 (Permanencia) y activos (orden = 1)
+$queryTeachers = "SELECT id, username, nombre, email FROM users WHERE rol = 14 AND orden = 1 ORDER BY nombre ASC";
 $resultTeachers = $conn->query($queryTeachers);
 
 $teachers = [];

@@ -170,6 +170,8 @@ if (session_status() == PHP_SESSION_NONE) {
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script>
+        const currentUsername = '<?php echo isset($_SESSION["username"]) ? $_SESSION["username"] : ""; ?>';
+
         let incapacitadosList = [];
 
         $(document).ready(function() {
@@ -265,6 +267,17 @@ if (session_status() == PHP_SESSION_NONE) {
 
         // Guardar asistencia
         $('#saveAttendance').click(function() {
+            if (!currentUsername) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Sesión no detectada',
+                    text: 'Tu sesión ha expirado o no se ha iniciado. Serás redirigido al inicio de sesión.',
+                    confirmButtonText: 'Ir al login',
+                    confirmButtonColor: '#e65100'
+                }).then(() => { window.location.href = 'login.php'; });
+                return;
+            }
+
             const attendanceData = {};
             const absentExplicitos = [];
 

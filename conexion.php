@@ -1,4 +1,5 @@
 <?php
+
 //datos local
 $server = "db";
 $username = "root";

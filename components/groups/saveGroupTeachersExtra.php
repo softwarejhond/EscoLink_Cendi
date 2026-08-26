@@ -9,7 +9,7 @@ header('Content-Type: application/json');
 $currentRol = $_SESSION['rol'] ?? null;
 $currentUser = $_SESSION['username'] ?? null;
 
-if ($currentRol == 5 || !$currentUser) {
+if ($currentRol == 14 || !$currentUser) {
     echo json_encode(['success' => false, 'message' => 'No tienes permisos para realizar esta asignación.']);
     exit;
 }

@@ -20,7 +20,16 @@ $gradeLevel      = $_POST['grade_level']      ?? '';
 $classDate       = $_POST['class_date']       ?? '';
 $observationType = $_POST['observation_type'] ?? '';
 $observationText = $_POST['observation_text'] ?? '';
-$createdBy       = $_SESSION['username']       ?? 'usuario_desconocido';
+$createdBy = $_SESSION['username'] ?? null;
+
+if ($createdBy === null || trim((string)$createdBy) === '') {
+    echo json_encode([
+        'success' => false,
+        'message' => 'Sesion no detectada. Inicie sesion nuevamente para registrar la observacion.',
+        'session_expired' => true
+    ]);
+    exit;
+}
 
 if (empty($studentId) || empty($gradeLevel) || empty($classDate) || empty($observationType)) {
     echo json_encode([

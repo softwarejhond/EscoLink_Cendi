@@ -175,7 +175,8 @@ function getRolText($rolNum)
                             <label class="form-label">Rol</label>
                             <select class="form-select" name="rol" id="rolSelect<?php echo $user['id']; ?>" required onchange="toggleSedesFields(<?php echo $user['id']; ?>)">
                                 <option value="1" <?php echo ($user['rol'] == 1) ? 'selected' : ''; ?>>Administrador</option>
-                                <option value="3" <?php echo ($user['rol'] == 3) ? 'selected' : ''; ?>>Asesor</option>
+                                <option value="5" <?php echo ($user['rol'] == 5) ? 'selected' : ''; ?>>Docente</option>
+                                <option value="14" <?php echo ($user['rol'] == 14) ? 'selected' : ''; ?>>Permanencia</option>
                             </select>
                         </div>
 
