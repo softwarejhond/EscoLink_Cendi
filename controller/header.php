@@ -55,7 +55,7 @@ $logo = $company['logo'] ?? 'gf_header.png'; // Fallback si no hay logo
                 <i class="bi bi-file-earmark-excel"></i>
             </button>
             <!-- NUEVO BOTÓN -->
-            <button id="btnInformeGeneral" class="btn bg-indigo-dark text-white" type="button">
+            <button id="btnInformeGeneral" class="btn bg-indigo-dark text-white me-2" type="button">
                 <i class="bi bi-file-earmark-text me-1"></i>Informe General
             </button>
             <script>
@@ -114,6 +114,63 @@ $logo = $company['logo'] ?? 'gf_header.png'; // Fallback si no hay logo
                 });
             </script>
         <?php endif; ?>
+
+        <!-- BOTÓN INFORME GENERAL DE ASISTENCIA -->
+        <button id="btnInformeAsistenciaGeneral" class="btn btn-success text-white" type="button">
+            <i class="bi bi-clipboard-data me-1"></i>Informe General de Asistencia
+        </button>
+
+        <script>
+            // EVENT LISTENER INFORME GENERAL DE ASISTENCIA
+            document.getElementById('btnInformeAsistenciaGeneral').addEventListener('click', function() {
+                Swal.fire({
+                    title: 'Generando Informe General de Asistencia',
+                    text: 'Recopilando información de asistencia de todos los grupos...',
+                    allowOutsideClick: false,
+                    allowEscapeKey: false,
+                    showConfirmButton: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
+
+                fetch('components/attendance/exportGeneralAttendance.php', {
+                        method: 'POST'
+                    })
+                    .then(response => {
+                        if (!response.ok) throw new Error('Error en la respuesta del servidor');
+                        return response.blob();
+                    })
+                    .then(blob => {
+                        const url = window.URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = `Informe_Asistencia_General_${new Date().toISOString().split('T')[0]}.xlsx`;
+                        document.body.appendChild(a);
+                        a.click();
+                        window.URL.revokeObjectURL(url);
+                        document.body.removeChild(a);
+
+                        Swal.close();
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Informe generado',
+                            text: 'El archivo se ha descargado exitosamente',
+                            showConfirmButton: false,
+                            timer: 2000
+                        });
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        Swal.close();
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'No se pudo generar el informe de asistencia'
+                        });
+                    });
+            });
+        </script>
 
         <div class="dropdown">
             <button class="btn btn-light dropdown-toggle" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
