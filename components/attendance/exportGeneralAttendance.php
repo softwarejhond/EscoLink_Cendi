@@ -12,6 +12,8 @@ use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
 header('Cache-Control: max-age=0');
 
+set_time_limit(120);
+
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     http_response_code(405);
     exit('Método no permitido');
@@ -37,6 +39,43 @@ try {
                 return 2;
             default:
                 return '-'; // Sin registro
+        }
+    }
+
+    /**
+     * Aplicar relleno por tramos contiguos dentro de una fila.
+     * $fills: [colorHex => [indices de columna, ...], ...]
+     */
+    function applyRowFills($sheet, $row, $fills) {
+        if (empty($fills)) {
+            return;
+        }
+        foreach ($fills as $color => $cols) {
+            sort($cols);
+            $count = count($cols);
+            $start = $cols[0];
+            $prev = $cols[0];
+            for ($i = 1; $i < $count; $i++) {
+                $cur = $cols[$i];
+                if ($cur !== $prev + 1) {
+                    $range = Coordinate::stringFromColumnIndex($start) . $row;
+                    if ($prev !== $start) {
+                        $range .= ':' . Coordinate::stringFromColumnIndex($prev) . $row;
+                    }
+                    $sheet->getStyle($range)->getFill()
+                        ->setFillType(Fill::FILL_SOLID)
+                        ->getStartColor()->setRGB($color);
+                    $start = $cur;
+                }
+                $prev = $cur;
+            }
+            $range = Coordinate::stringFromColumnIndex($start) . $row;
+            if ($prev !== $start) {
+                $range .= ':' . Coordinate::stringFromColumnIndex($prev) . $row;
+            }
+            $sheet->getStyle($range)->getFill()
+                ->setFillType(Fill::FILL_SOLID)
+                ->getStartColor()->setRGB($color);
         }
     }
 
@@ -144,30 +183,31 @@ try {
 
         $basicCols = 7; // Grado + 6 columnas básicas
         $totalHeaders = count($headers);
+        $firstDateCol = $basicCols + 1;
+        $lastDateCol = $totalHeaders - 2;
+        $firstPctCol = $totalHeaders - 1;
 
         // ==========================================
         // Escribir encabezados en fila 1
         // ==========================================
-        $col = 1;
-        foreach ($headers as $index => $header) {
-            $cellRef = Coordinate::stringFromColumnIndex($col) . '1';
-            $sheet->setCellValue($cellRef, $header);
-            $sheet->getStyle($cellRef)->getFont()->setBold(true);
+        $sheet->fromArray([$headers], null, 'A1', true);
 
-            // Color de fondo según tipo de columna
-            if ($index < $basicCols) {
-                $headerColor = 'E2E8F0';
-            } elseif ($index < $totalHeaders - 2) {
-                $headerColor = 'DBEAFE'; // Azul claro para columnas de fechas
-            } else {
-                $headerColor = 'D1FAE5'; // Verde claro para porcentajes
-            }
-
-            $sheet->getStyle($cellRef)->getFill()
+        // Color de fondo de encabezados por bloques
+        $headerRanges = [
+            ['A1:' . Coordinate::stringFromColumnIndex($basicCols) . '1', 'E2E8F0'],
+            [Coordinate::stringFromColumnIndex($firstPctCol) . '1:' . Coordinate::stringFromColumnIndex($totalHeaders) . '1', 'D1FAE5'],
+        ];
+        if (!empty($classDates)) {
+            $headerRanges[] = [
+                Coordinate::stringFromColumnIndex($firstDateCol) . '1:' . Coordinate::stringFromColumnIndex($lastDateCol) . '1',
+                'DBEAFE',
+            ];
+        }
+        foreach ($headerRanges as $headerRange) {
+            $sheet->getStyle($headerRange[0])->getFont()->setBold(true);
+            $sheet->getStyle($headerRange[0])->getFill()
                 ->setFillType(Fill::FILL_SOLID)
-                ->getStartColor()->setRGB($headerColor);
-
-            $col++;
+                ->getStartColor()->setRGB($headerRange[1]);
         }
 
         // ==========================================
@@ -175,33 +215,27 @@ try {
         // ==========================================
         $row = 2;
         foreach ($students as $student) {
-            $col = 1;
             $studentId = $student['document_number'] ?? '';
             $studentGrade = $student['grade_level'] ?? '';
 
             // Datos básicos del estudiante
-            $sheet->setCellValue(Coordinate::stringFromColumnIndex($col++) . $row, $studentGrade);
-            $sheet->setCellValue(Coordinate::stringFromColumnIndex($col++) . $row, $student['document_type'] ?? 'N/A');
-            $sheet->setCellValue(Coordinate::stringFromColumnIndex($col++) . $row, $studentId);
-            $sheet->setCellValue(Coordinate::stringFromColumnIndex($col++) . $row, $student['name'] ?? 'N/A');
-            $sheet->setCellValue(Coordinate::stringFromColumnIndex($col++) . $row, $student['email'] ?? 'N/A');
-            $sheet->setCellValue(Coordinate::stringFromColumnIndex($col++) . $row, $student['cell_phone'] ?? 'N/A');
-            $sheet->setCellValue(Coordinate::stringFromColumnIndex($col++) . $row, $student['status'] ?? 'N/A');
+            $rowData = [
+                $studentGrade,
+                $student['document_type'] ?? 'N/A',
+                $studentId,
+                $student['name'] ?? 'N/A',
+                $student['email'] ?? 'N/A',
+                $student['cell_phone'] ?? 'N/A',
+                $student['status'] ?? 'N/A',
+            ];
 
-            // Datos de asistencia por fecha
+            // Datos de asistencia por fecha (acumulando rellenos por color)
+            $rowFills = [];
+            $col = $firstDateCol;
             foreach ($classDates as $classDate) {
                 $attendanceStatus = $attendanceMap[$studentId][$studentGrade][$classDate] ?? null;
-                $attendanceCode = getAttendanceCode($attendanceStatus);
+                $rowData[] = getAttendanceCode($attendanceStatus);
 
-                $cellRef = Coordinate::stringFromColumnIndex($col) . $row;
-                $sheet->setCellValue($cellRef, $attendanceCode);
-
-                // Centrar el contenido
-                $sheet->getStyle($cellRef)->getAlignment()
-                    ->setHorizontal(Alignment::HORIZONTAL_CENTER)
-                    ->setVertical(Alignment::VERTICAL_CENTER);
-
-                // Aplicar color de fondo según estado
                 if ($attendanceStatus !== null) {
                     $bgColor = '';
                     switch ($attendanceStatus) {
@@ -216,9 +250,7 @@ try {
                             break;
                     }
                     if ($bgColor) {
-                        $sheet->getStyle($cellRef)->getFill()
-                            ->setFillType(Fill::FILL_SOLID)
-                            ->getStartColor()->setRGB($bgColor);
+                        $rowFills[$bgColor][] = $col;
                     }
                 }
 
@@ -237,17 +269,14 @@ try {
                 $absencePercentage = 0;
             }
 
-            $attCellRef = Coordinate::stringFromColumnIndex($col++) . $row;
-            $sheet->setCellValue($attCellRef, $attendancePercentage . '%');
-            $sheet->getStyle($attCellRef)->getAlignment()
-                ->setHorizontal(Alignment::HORIZONTAL_CENTER)
-                ->setVertical(Alignment::VERTICAL_CENTER);
+            $rowData[] = $attendancePercentage . '%';
+            $rowData[] = $absencePercentage . '%';
 
-            $absCellRef = Coordinate::stringFromColumnIndex($col++) . $row;
-            $sheet->setCellValue($absCellRef, $absencePercentage . '%');
-            $sheet->getStyle($absCellRef)->getAlignment()
-                ->setHorizontal(Alignment::HORIZONTAL_CENTER)
-                ->setVertical(Alignment::VERTICAL_CENTER);
+            // Escribir fila completa de una sola vez
+            $sheet->fromArray($rowData, null, 'A' . $row, true);
+
+            // Aplicar rellenos agrupados por tramos contiguos
+            applyRowFills($sheet, $row, $rowFills);
 
             $row++;
         }
@@ -257,6 +286,7 @@ try {
         // ==========================================
         $highestRow = $sheet->getHighestRow();
         $highestCol = $sheet->getHighestColumn();
+        $highestColIndex = Coordinate::columnIndexFromString($highestCol);
 
         // Ajustar ancho de columnas automáticamente para las primeras 7
         for ($i = 1; $i <= $basicCols; $i++) {
@@ -264,8 +294,7 @@ try {
         }
 
         // Ancho fijo para columnas de fechas
-        $highestColIndex = Coordinate::columnIndexFromString($highestCol);
-        for ($i = $basicCols + 1; $i <= $highestColIndex - 2; $i++) {
+        for ($i = $firstDateCol; $i <= $lastDateCol; $i++) {
             $sheet->getColumnDimension(Coordinate::stringFromColumnIndex($i))->setWidth(12);
         }
 
@@ -277,18 +306,20 @@ try {
         $sheet->getStyle('A1:' . $highestCol . $highestRow)->getBorders()->getAllBorders()
             ->setBorderStyle(Border::BORDER_THIN);
 
-        // Alineación central en encabezados
+        // Alineación central en encabezados + wrap text
         $sheet->getStyle('A1:' . $highestCol . '1')->getAlignment()
             ->setHorizontal(Alignment::HORIZONTAL_CENTER)
-            ->setVertical(Alignment::VERTICAL_CENTER);
-
-        // Wrap text en encabezados
-        $sheet->getStyle('A1:' . $highestCol . '1')->getAlignment()
+            ->setVertical(Alignment::VERTICAL_CENTER)
             ->setWrapText(true);
 
         // Alineación vertical centrada para datos
         $sheet->getStyle('A2:' . $highestCol . $highestRow)->getAlignment()
             ->setVertical(Alignment::VERTICAL_CENTER);
+
+        // Alineación horizontal centrada para columnas de asistencia y porcentajes
+        $sheet->getStyle(
+            Coordinate::stringFromColumnIndex($firstDateCol) . '2:' . $highestCol . $highestRow
+        )->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
 
         // Fijar fila de encabezados
         $sheet->freezePane('A2');
@@ -366,7 +397,7 @@ try {
     $writer = new Xlsx($spreadsheet);
     $writer->save('php://output');
 
-} catch (Exception $e) {
+} catch (Throwable $e) {
     http_response_code(500);
     echo 'Error al generar el archivo: ' . $e->getMessage();
 }
