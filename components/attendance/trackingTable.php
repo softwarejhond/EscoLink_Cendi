@@ -371,6 +371,40 @@ if (session_status() == PHP_SESSION_NONE) {
                 <p class="mt-2">Selecciona un grado para ver la tabla de seguimiento</p>
             </div>
 
+            <!-- Filtros de la tabla de seguimiento -->
+            <div id="trackingFilters" class="card border-0 shadow-sm mb-3 w-100" style="display: none;">
+                <div class="card-body py-3 w-100">
+                    <div class="row g-3 align-items-end w-100">
+                        <div class="col-12 col-sm-6 col-lg">
+                            <label class="form-label small fw-semibold mb-1">Fecha desde</label>
+                            <input type="date" id="trackingDateFrom" class="form-control form-control-sm w-100">
+                        </div>
+                        <div class="col-12 col-sm-6 col-lg">
+                            <label class="form-label small fw-semibold mb-1">Fecha hasta</label>
+                            <input type="date" id="trackingDateTo" class="form-control form-control-sm w-100">
+                        </div>
+                        <div class="col-12 col-sm-6 col-lg">
+                            <label class="form-label small fw-semibold mb-1">Clase desde</label>
+                            <input type="number" id="trackingClassFrom" class="form-control form-control-sm w-100" step="1" value="1">
+                        </div>
+                        <div class="col-12 col-sm-6 col-lg">
+                            <label class="form-label small fw-semibold mb-1">Clase hasta</label>
+                            <input type="number" id="trackingClassTo" class="form-control form-control-sm w-100" step="1">
+                        </div>
+                        <div class="col-12 col-sm-6 col-lg">
+                            <button type="button" id="trackingClearFilters" class="btn btn-sm btn-outline-secondary w-100">
+                                <i class="bi bi-eraser me-1"></i>Limpiar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Indicador de clases visibles (debajo de la barra de filtros) -->
+            <div class="text-end mb-2">
+                <span id="trackingFilterInfo" class="small text-muted"></span>
+            </div>
+
             <div id="studentsContainer" style="display: none;">
                 <div class="table-responsive">
                     <!-- La tabla se genera dinámicamente -->
@@ -400,6 +434,10 @@ if (session_status() == PHP_SESSION_NONE) {
     let chartTopAbsences  = null;
     let chartInterventions = null;
 
+    // Datos de las clases (columnas de fecha) de la tabla de seguimiento
+    let trackingClassesData = [];
+    const TRACKING_BASE_COLUMNS = 6; // Tipo ID, Documento, Nombre, Correo, Teléfono, Estado
+
     $(document).ready(function() {
         // Select2 en selector de grado
         $('#trackingGradeLevel').select2({
@@ -424,6 +462,8 @@ if (session_status() == PHP_SESSION_NONE) {
             $('#exportTrackingBtn').prop('disabled', true);
             currentTrackingData = null;
             currentGradeLevel = null;
+            trackingClassesData = [];
+            $('#trackingFilters').hide();
 
             // Resetear panel estadístico
             $('#statsContainer').hide();
@@ -723,6 +763,16 @@ if (session_status() == PHP_SESSION_NONE) {
             });
         });
 
+        // Filtros de la tabla de seguimiento (fechas y número de clase)
+        $('#trackingDateFrom, #trackingDateTo, #trackingClassFrom, #trackingClassTo').on('change input', function() {
+            applyTrackingFilters();
+        });
+
+        $('#trackingClearFilters').on('click', function() {
+            resetTrackingFilters();
+            applyTrackingFilters();
+        });
+
         // Ajustar anchos de DataTable al mostrar el tab de seguimiento
         $('#mainTrackingTabs button[data-bs-target="#tracking-tab-pane"]').on('shown.bs.tab', function() {
             if ($.fn.DataTable.isDataTable('#tracking-table')) {
@@ -954,8 +1004,121 @@ if (session_status() == PHP_SESSION_NONE) {
         });
     }
 
+    // Devuelve la primera y última fecha de clase registradas
+    function getTrackingDateBounds() {
+        const total = trackingClassesData.length;
+        return {
+            first: total ? trackingClassesData[0].class_date : '',
+            last:  total ? trackingClassesData[total - 1].class_date : ''
+        };
+    }
+
+    // Reiniciar filtros a su estado inicial (todas las clases visibles)
+    function resetTrackingFilters() {
+        const total = trackingClassesData.length;
+        const bounds = getTrackingDateBounds();
+
+        // Las fechas solo pueden ir del primer al último registro
+        $('#trackingDateFrom, #trackingDateTo')
+            .val('')
+            .attr('min', bounds.first || '')
+            .attr('max', bounds.last || '');
+
+        // Clases: 1 .. total (sin min en "desde" para permitir el salto circular)
+        $('#trackingClassFrom').val(total ? 1 : '').attr('max', total || '').removeAttr('min');
+        $('#trackingClassTo').val(total ? total : '').attr('max', total || '').attr('min', 1);
+    }
+
+    // Aplicar los filtros de fecha y número de clase sobre las columnas de la tabla
+    function applyTrackingFilters() {
+        const table = $('#tracking-table');
+        if (!trackingClassesData.length || !$.fn.DataTable.isDataTable(table)) {
+            return;
+        }
+
+        const dt = table.DataTable();
+        const total = trackingClassesData.length;
+        const bounds = getTrackingDateBounds();
+
+        let dateFrom = $('#trackingDateFrom').val();
+        let dateTo   = $('#trackingDateTo').val();
+        let classFrom = $('#trackingClassFrom').val() === '' ? NaN : parseInt($('#trackingClassFrom').val(), 10);
+        let classTo   = $('#trackingClassTo').val() === '' ? NaN : parseInt($('#trackingClassTo').val(), 10);
+
+        // Fechas: no permitir valores fuera del rango de clases registradas
+        if (dateFrom && bounds.first && dateFrom < bounds.first) {
+            dateFrom = bounds.first; $('#trackingDateFrom').val(dateFrom);
+        }
+        if (dateFrom && bounds.last && dateFrom > bounds.last) {
+            dateFrom = bounds.last; $('#trackingDateFrom').val(dateFrom);
+        }
+        if (dateTo && bounds.first && dateTo < bounds.first) {
+            dateTo = bounds.first; $('#trackingDateTo').val(dateTo);
+        }
+        if (dateTo && bounds.last && dateTo > bounds.last) {
+            dateTo = bounds.last; $('#trackingDateTo').val(dateTo);
+        }
+
+        // Clases: si "desde" baja de 1 salta automáticamente a la última clase
+        if (!isNaN(classFrom)) {
+            if (classFrom < 1) classFrom = total;
+            if (classFrom > total) classFrom = total;
+            $('#trackingClassFrom').val(classFrom);
+        }
+        if (!isNaN(classTo)) {
+            if (classTo < 1) classTo = 1;
+            if (classTo > total) classTo = total;
+            $('#trackingClassTo').val(classTo);
+        }
+
+        // Permitir rangos invertidos: los normalizamos
+        if (dateFrom && dateTo && dateFrom > dateTo) {
+            const tmp = dateFrom; dateFrom = dateTo; dateTo = tmp;
+            $('#trackingDateFrom').val(dateFrom);
+            $('#trackingDateTo').val(dateTo);
+        }
+        if (!isNaN(classFrom) && !isNaN(classTo) && classFrom > classTo) {
+            const tmp = classFrom; classFrom = classTo; classTo = tmp;
+            $('#trackingClassFrom').val(classFrom);
+            $('#trackingClassTo').val(classTo);
+        }
+
+        let visibleCount = 0;
+
+        trackingClassesData.forEach(function(classInfo, i) {
+            const classNumber = i + 1;
+            const classDate = classInfo.class_date;
+
+            let visible = true;
+            if (!isNaN(classFrom) && classNumber < classFrom) visible = false;
+            if (!isNaN(classTo) && classNumber > classTo) visible = false;
+            if (dateFrom && classDate < dateFrom) visible = false;
+            if (dateTo && classDate > dateTo) visible = false;
+
+            dt.column(TRACKING_BASE_COLUMNS + i).visible(visible, false);
+            if (visible) visibleCount++;
+        });
+
+        dt.columns.adjust().draw(false);
+
+        $('#trackingFilterInfo').text(
+            'Mostrando ' + visibleCount + ' de ' + trackingClassesData.length + ' clase(s)'
+        );
+    }
+
     // Poblar las tablas de seguimiento
     function populateTrackingTables(students, classes) {
+        // Guardar las clases (columnas de fecha) y reiniciar filtros
+        trackingClassesData = classes || [];
+        resetTrackingFilters();
+        if (trackingClassesData.length > 0) {
+            $('#trackingFilters').show();
+            $('#trackingFilterInfo').text('Mostrando ' + trackingClassesData.length + ' de ' + trackingClassesData.length + ' clase(s)');
+        } else {
+            $('#trackingFilters').hide();
+            $('#trackingFilterInfo').text('');
+        }
+
         // Quitar tabs - usar una sola tabla
         const table = $('#studentsContainer .table-responsive');
         table.html(`
